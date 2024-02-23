@@ -1,0 +1,91 @@
+// Copyright (c) FIRST and other WPILib contributors.
+// Open Source Software; you can modify and/or share it under the terms of
+// the WPILib BSD license file in the root directory of this project.
+
+package frc.robot;
+
+import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.TimedRobot;
+
+/**
+ * The VM is configured to automatically run this class, and to call the functions corresponding to
+ * each mode, as described in the TimedRobot documentation. If you change the name of this class or
+ * the package after creating this project, you must also update the build.gradle file in the
+ * project.
+ */
+public class Robot extends TimedRobot {
+
+  SwervBase drivebase = new SwervBase();
+  Joystick xBox = new Joystick(0);
+
+  /**
+   * This function is run when the robot is first started up and should be used for any
+   * initialization code.
+   */
+  @Override
+  public void robotInit() {}
+
+  @Override
+  public void robotPeriodic() {}
+
+  @Override
+  public void autonomousInit() {}
+
+  @Override
+  public void autonomousPeriodic() {}
+
+  @Override
+  public void teleopInit() {
+    drivebase.reset();
+  }
+
+  @Override
+  public void teleopPeriodic() {
+
+    double x = xBox.getRawAxis(0);
+    double y = xBox.getRawAxis(1);
+    double z = xBox.getRawAxis(4);
+
+    if (xBox.getRawButtonPressed(2)){
+      drivebase.reset();
+    }
+    
+
+    if (Math.abs(x) < 0.2){
+      x = 0;
+    }
+
+    if (Math.abs(y) < 0.2){
+      y = 0;
+    }
+
+    if (Math.abs(z) < 0.2){
+      z = 0;
+    }
+
+
+    drivebase.liveMove(x * 0.4, y * 0.4, z * 0.4);
+    drivebase.getEncoders();
+
+
+
+  }
+
+  @Override
+  public void disabledInit() {}
+
+  @Override
+  public void disabledPeriodic() {}
+
+  @Override
+  public void testInit() {}
+
+  @Override
+  public void testPeriodic() {}
+
+  @Override
+  public void simulationInit() {}
+
+  @Override
+  public void simulationPeriodic() {}
+}
