@@ -9,9 +9,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public class SwervBase {
 
     // Constants for initial rotation offsets for each SwervCorner
-    private static final double ROTATE_OFFSET_FR = 0.294678;
+    private static final double ROTATE_OFFSET_FR = 0.794678;
     private static final double ROTATE_OFFSET_FL = 0.543213;
-    private static final double ROTATE_OFFSET_BR = 0.773430;
+    private static final double ROTATE_OFFSET_BR = 0.273430;
     private static final double ROTATE_OFFSET_BL = 0.298096;
 
     // Swerve Corners

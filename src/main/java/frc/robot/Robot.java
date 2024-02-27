@@ -64,7 +64,7 @@ public class Robot extends TimedRobot {
     }
 
 
-    drivebase.liveMove(x * 0.4, y * 0.4, z * 0.4);
+    drivebase.liveMove(y , x , z);
     drivebase.getEncoders();
 
 
