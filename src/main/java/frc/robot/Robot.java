@@ -91,6 +91,9 @@ public class Robot extends TimedRobot {
     if (xBox.getRawButtonPressed(2)){
       drivebase.reset();
     }
+    if (xBox.getRawButtonPressed(3)){
+      drivebase.xToggle();
+    }
 
 
     drivebase.liveMove(y , x , z);
