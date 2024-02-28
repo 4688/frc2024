@@ -23,6 +23,7 @@ public class Robot extends TimedRobot {
   Joystick xBox = new Joystick(0);
   private int lastPOV = -1;
   private int turnToAng = -1;
+  private boolean isAuto = false;
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -72,15 +73,24 @@ public class Robot extends TimedRobot {
       turnToAng = -1;
     }
 
-
-
-
-
     int currentPOV = xBox.getPOV();
     if (lastPOV == -1 && currentPOV != -1) {
       turnToAng = currentPOV;
     }
     lastPOV = currentPOV;
+
+    if (xBox.getRawButtonPressed(1)){
+      isAuto = !isAuto;
+    }
+
+    if(isAuto){
+      double limex =
+      double limez =
+      turnToAng = 0;
+      
+
+      
+    }
 
     if (turnToAng != -1){
       double curAng = drivebase.getNavX();
