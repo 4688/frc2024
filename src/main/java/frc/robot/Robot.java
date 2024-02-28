@@ -4,8 +4,12 @@
 
 package frc.robot;
 
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -44,6 +48,11 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
 
+    NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
+
+    double txValue = getAprilTagValues(table, 1);
+    SmartDashboard.putNumber("LimelightX", txValue);
+    
     double x = xBox.getRawAxis(0)*0.4;
     double y = xBox.getRawAxis(1)*0.4;
     double z = xBox.getRawAxis(4)*0.4;
@@ -101,6 +110,32 @@ public class Robot extends TimedRobot {
 
 
 
+  }
+
+  private double getAprilTagValues(NetworkTable table, int id) {
+    NetworkTableEntry tx = table.getEntry("tx");
+    NetworkTableEntry ty = table.getEntry("ty");
+    NetworkTableEntry tid = table.getEntry("tid");
+    NetworkTableEntry tg = table.getEntry("camerapose_targetspace");
+    
+    //Reading values 
+    double x = tx.getDouble(0.0);
+    double y = ty.getDouble(0.0);
+    double val = tid.getDouble(0.0);
+    double[] cpose = tg.getDoubleArray(new double[]{0, 0, 0, 0, 0, 0, 0});
+    if (val==id) {
+      SmartDashboard.putNumber("LimelightX",x);
+      SmartDashboard.putNumber("LimelightY",y);
+      SmartDashboard.putNumber("targetZ",cpose[2]);
+      SmartDashboard.putNumber("targetY",cpose[1]);
+      SmartDashboard.putNumber("targetX",cpose[0]);
+      return x;
+      }
+      else {
+      SmartDashboard.putNumber("LimelightVal",val);
+      return (-1.0);
+      }
+      
   }
 
   @Override
