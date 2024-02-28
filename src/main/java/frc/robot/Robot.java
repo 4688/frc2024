@@ -42,6 +42,9 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopInit() {
+    int[] redTags = {1, 2, 3, 4, 5, 6, 7, 8};
+    int[] blueTags = {9, 10, 11, 12, 13, 14, 15, 16};
+    NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
     drivebase.reset();
   }
 
@@ -49,13 +52,16 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
 
     NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
+    double txValue = getAprilTagValueX(table, 1);
+    double tzValue = getAprilTagValueZ(table, 1);
 
-    double txValue = getAprilTagValues(table, 1);
     SmartDashboard.putNumber("LimelightX", txValue);
+    SmartDashboard.putNumber("LimelightZ", tzValue);
     
     double x = xBox.getRawAxis(0)*0.4;
     double y = xBox.getRawAxis(1)*0.4;
     double z = xBox.getRawAxis(4)*0.4;
+
 
 
     if (Math.abs(x) < 0.2){
@@ -109,28 +115,38 @@ public class Robot extends TimedRobot {
 
   }
 
-  private double getAprilTagValues(NetworkTable table, int id) {
-    NetworkTableEntry tx = table.getEntry("tx");
-    NetworkTableEntry ty = table.getEntry("ty");
+  private double getAprilTagValueX(NetworkTable table, int id) {
     NetworkTableEntry tid = table.getEntry("tid");
     NetworkTableEntry tg = table.getEntry("camerapose_targetspace");
     
     //Reading values 
-    double x = tx.getDouble(0.0);
-    double y = ty.getDouble(0.0);
     double val = tid.getDouble(0.0);
-    double[] cpose = tg.getDoubleArray(new double[]{0, 0, 0, 0, 0, 0, 0});
+    double[] cpose = tg.getDoubleArray(new double[]{4688, 4688, 4688, 4688, 4688, 4688, 4688});
     if (val==id) {
-      SmartDashboard.putNumber("LimelightX",x);
-      SmartDashboard.putNumber("LimelightY",y);
-      SmartDashboard.putNumber("targetZ",cpose[2]);
-      SmartDashboard.putNumber("targetY",cpose[1]);
       SmartDashboard.putNumber("targetX",cpose[0]);
-      return x;
+      return cpose[0];
       }
       else {
       SmartDashboard.putNumber("LimelightVal",val);
-      return (-1.0);
+      return (4688.2024);
+      }
+      
+  }
+
+  private double getAprilTagValueZ(NetworkTable table, int id) {
+    NetworkTableEntry tid = table.getEntry("tid");
+    NetworkTableEntry tg = table.getEntry("camerapose_targetspace");
+    
+    //Reading values 
+    double val = tid.getDouble(0.0);
+    double[] cpose = tg.getDoubleArray(new double[]{4688, 4688, 4688, 4688, 4688, 4688, 4688});
+    if (val==id) {
+      SmartDashboard.putNumber("targetX", Math.abs(cpose[2]));
+      return Math.abs(cpose[2]);
+      }
+      else {
+      SmartDashboard.putNumber("LimelightVal",val);
+      return (4688.2024);
       }
       
   }
