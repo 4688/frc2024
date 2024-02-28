@@ -52,6 +52,10 @@ public class SwervBase {
         CornerBR.resetRPM();
     }
 
+    public double getNavX(){
+        return (NavX.getYaw() + 360) % 360;
+    }
+
     /**
      * Publishes encoder values and actual wheel angles to the SmartDashboard.
      */
@@ -60,8 +64,9 @@ public class SwervBase {
         SmartDashboard.putNumber("FR Encoder", CornerFR.getTurnEnc());
         SmartDashboard.putNumber("BR Encoder", CornerBR.getTurnEnc());
         SmartDashboard.putNumber("BL Encoder", CornerBL.getTurnEnc());
-
         SmartDashboard.putNumber("FL Actual Angle", CornerFL.getWheelAngle());
+
+        SmartDashboard.putNumber("KMPH", CornerBL.WheelVelocity());
     }
 
     /**
@@ -71,17 +76,30 @@ public class SwervBase {
      * @param z The z-component (rotation) of the movement vector.
      */
     public void liveMove(double x, double y, double z) {
+
+        
+        // Calculate Turn based on NavX
+        double roboturn = (NavX.getYaw() + 360) % 360;
+        SmartDashboard.putNumber("NavX", roboturn);
+        double angle = Math.toDegrees(Math.atan2(y, x));
+        if (angle < 0) angle += 360; 
+        angle = Math.toRadians((angle + roboturn) % 360);
+        double mag = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+        x = mag * Math.cos(angle);
+        y = mag * Math.sin(angle);
+        
+        
         // Normalize magnitudes and calculate angles directly within the method
         double frx = x + z;
-        double fry = y - z;
+        double fry = y + z;
         double frmag = Math.sqrt(Math.pow(frx, 2) + Math.pow(fry, 2));
-        double flx = x + z;
+        double flx = x - z;
         double fly = y + z;
         double flmag = Math.sqrt(Math.pow(flx, 2) + Math.pow(fly, 2));
         double blx = x - z;
-        double bly = y + z;
+        double bly = y - z;
         double blmag = Math.sqrt(Math.pow(blx, 2) + Math.pow(bly, 2));
-        double brx = x - z;
+        double brx = x + z;
         double bry = y - z;
         double brmag = Math.sqrt(Math.pow(brx, 2) + Math.pow(bry, 2));
     
@@ -103,15 +121,11 @@ public class SwervBase {
             if (angleBR < 0) angleBR += 360;
         }
 
-        // Calculate Turn based on NavX
-        double roboturn = (NavX.getYaw() + 360) % 360;
-        SmartDashboard.putNumber("NavX", roboturn);
-
         //Checking if we need to turn first without moving (Stops browning out)
-        double flDist = calcDist(CornerFL.getWheelAngle(),(angleFL + roboturn) % 360);
-        double frDist = calcDist(CornerFR.getWheelAngle(),(angleFR + roboturn) % 360);
-        double brDist = calcDist(CornerBR.getWheelAngle(),(angleBR + roboturn) % 360);
-        double blDist = calcDist(CornerBL.getWheelAngle(),(angleBL + roboturn) % 360);
+        double flDist = calcDist(CornerFL.getWheelAngle(),angleFL);
+        double frDist = calcDist(CornerFR.getWheelAngle(),angleFR);
+        double brDist = calcDist(CornerBR.getWheelAngle(),angleBR);
+        double blDist = calcDist(CornerBL.getWheelAngle(),angleBL);
         if((flDist + frDist + brDist + blDist)/4 > 45){
             flmag = 0;
             frmag = 0;
@@ -130,10 +144,10 @@ public class SwervBase {
         }
     
         // Drive each corner with the calculated angles and magnitudes
-        CornerFL.liveDrive((angleFL + roboturn) % 360, flmag);
-        CornerFR.liveDrive((angleFR + roboturn) % 360, frmag);
-        CornerBL.liveDrive((angleBL + roboturn) % 360, blmag);
-        CornerBR.liveDrive((angleBR + roboturn) % 360, brmag);
+        CornerFL.liveDrive(angleFL, flmag);
+        CornerFR.liveDrive(angleFR, frmag);
+        CornerBL.liveDrive(angleBL, blmag);
+        CornerBR.liveDrive(angleBR, brmag);
     }
 
     public double calcDist(double starting, double ending){

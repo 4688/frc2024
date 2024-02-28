@@ -29,6 +29,8 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
+import edu.wpi.first.math.kinematics.DifferentialDriveWheelPositions;
+
 public class SwervCorner {
 
     // Constants for calculations
@@ -77,13 +79,14 @@ public class SwervCorner {
         RPMPosition = driveEncoder.getPosition();
     }
 
+   
     /**
      * Calculates and returns the current wheel velocity.
      *
      * @return Wheel velocity adjusted by conversion factor.
      */
     public double WheelVelocity() {
-        return driveEncoder.getVelocity() / WHEEL_TURN_RATIO;
+        return Math.abs(driveEncoder.getVelocity() / WHEEL_TURN_RATIO * 31.9 * 60 / 100000);
     }
 
     /**

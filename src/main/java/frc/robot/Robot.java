@@ -17,6 +17,8 @@ public class Robot extends TimedRobot {
 
   SwervBase drivebase = new SwervBase();
   Joystick xBox = new Joystick(0);
+  private int lastPOV = -1;
+  private int turnToAng = -1;
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -42,14 +44,10 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
 
-    double x = xBox.getRawAxis(0);
-    double y = xBox.getRawAxis(1);
-    double z = xBox.getRawAxis(4);
+    double x = xBox.getRawAxis(0)*0.4;
+    double y = xBox.getRawAxis(1)*0.4;
+    double z = xBox.getRawAxis(4)*0.4;
 
-    if (xBox.getRawButtonPressed(2)){
-      drivebase.reset();
-    }
-    
 
     if (Math.abs(x) < 0.2){
       x = 0;
@@ -61,6 +59,37 @@ public class Robot extends TimedRobot {
 
     if (Math.abs(z) < 0.2){
       z = 0;
+    }else{
+      turnToAng = -1;
+    }
+
+
+
+
+
+    int currentPOV = xBox.getPOV();
+    if (lastPOV == -1 && currentPOV != -1) {
+      turnToAng = currentPOV;
+    }
+    lastPOV = currentPOV;
+
+    if (turnToAng != -1){
+      double curAng = drivebase.getNavX();
+      if (Math.abs(curAng - turnToAng) < 0.5){
+        turnToAng = -1;
+      }else{
+        double clockwise = (turnToAng - curAng + 360) % 360;
+        double counterCwise = (curAng - turnToAng + 360) % 360;
+        if (clockwise > counterCwise){
+          z = -counterCwise / 180;
+        }else{
+          z = clockwise / 180;
+        }
+      }
+    }
+
+    if (xBox.getRawButtonPressed(2)){
+      drivebase.reset();
     }
 
 
