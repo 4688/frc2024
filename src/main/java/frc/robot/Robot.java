@@ -90,13 +90,13 @@ public class Robot extends TimedRobot {
     }
 
     if(isAuto){
-      tzValue = tzValue - 0.5;
-      if (Math.abs(txValue) < 0.05 && Math.abs(tzValue) < 0.05){
+      tzValue = tzValue - 1;
+      if (Math.abs(txValue) < 0.02 && Math.abs(tzValue) < 0.02){
         isAuto = false;
       }else{
       turnToAng = 0;
-      y = txValue;
-      x = tzValue;
+      x = -txValue;
+      y = -tzValue;
       }
       
     }
