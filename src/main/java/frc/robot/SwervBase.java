@@ -148,7 +148,7 @@ public class SwervBase {
             }
         }
 
-        if (flmag == 0 && frmag == 0 && blmag == 0 && brmag == 0 && xMode){
+        if (x == 0 && y == 0 && z == 0 && xMode){
             CornerFL.liveDrive(45, flmag);
             CornerFR.liveDrive(315, frmag);
             CornerBL.liveDrive(135, blmag);
