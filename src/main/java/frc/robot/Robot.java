@@ -90,11 +90,14 @@ public class Robot extends TimedRobot {
     }
 
     if(isAuto){
-      double limex =
-      double limez =
+      tzValue = tzValue - 0.5;
+      if (Math.abs(txValue) < 0.05 && Math.abs(tzValue) < 0.05){
+        isAuto = false;
+      }else{
       turnToAng = 0;
-      
-
+      y = txValue;
+      x = tzValue;
+      }
       
     }
 
@@ -120,8 +123,8 @@ public class Robot extends TimedRobot {
       drivebase.xToggle();
     }
 
-
-    drivebase.liveMove(y , x , z);
+    double m = xBox.getRawAxis(2);
+    drivebase.liveMove(y * m, x * m, z * m);
     drivebase.getEncoders();
 
 
