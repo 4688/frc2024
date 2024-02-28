@@ -23,6 +23,7 @@ public class SwervBase {
     private double angleFR = 0;
     private double angleBL = 0;
     private double angleBR = 0;
+    private boolean xMode = true;
 
     // NavX (ROBOT GPS)
     private final AHRS NavX;
@@ -54,6 +55,10 @@ public class SwervBase {
 
     public double getNavX(){
         return (NavX.getYaw() + 360) % 360;
+    }
+
+    public void xToggle(){
+        xMode = !xMode;
     }
 
     /**
@@ -142,12 +147,19 @@ public class SwervBase {
                 brmag /= bigMag;
             }
         }
-    
-        // Drive each corner with the calculated angles and magnitudes
-        CornerFL.liveDrive(angleFL, flmag);
-        CornerFR.liveDrive(angleFR, frmag);
-        CornerBL.liveDrive(angleBL, blmag);
-        CornerBR.liveDrive(angleBR, brmag);
+
+        if (x == 0 && y == 0 && z == 0 && xMode){
+            CornerFL.liveDrive(45, flmag);
+            CornerFR.liveDrive(315, frmag);
+            CornerBL.liveDrive(135, blmag);
+            CornerBR.liveDrive(225, brmag);
+        }else{
+            // Drive each corner with the calculated angles and magnitudes
+            CornerFL.liveDrive(angleFL, flmag);
+            CornerFR.liveDrive(angleFR, frmag);
+            CornerBL.liveDrive(angleBL, blmag);
+            CornerBR.liveDrive(angleBR, brmag);
+        }
     }
 
     public double calcDist(double starting, double ending){
