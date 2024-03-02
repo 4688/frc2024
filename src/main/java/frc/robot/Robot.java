@@ -67,8 +67,9 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
 
     NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
-    double txValue = getAprilTagValueX(table, 1);
-    double tzValue = getAprilTagValueZ(table, 1);
+    double closestId = getClosest(table);
+    double txValue = getAprilTagValueX(table, (int)closestId);
+    double tzValue = getAprilTagValueZ(table, (int)closestId);
 
     SmartDashboard.putNumber("LimelightX", txValue);
     SmartDashboard.putNumber("LimelightZ", tzValue);
@@ -105,10 +106,14 @@ public class Robot extends TimedRobot {
 
     if(isAuto){
       tzValue = tzValue - 1;
-      if (Math.abs(txValue) < 0.02 && Math.abs(tzValue) < 0.02){
+      if ((Math.abs(txValue) < 0.02 && Math.abs(tzValue) < 0.02) || tzValue > 200){
         isAuto = false;
       }else{
       turnToAng = 0;
+      if (txValue > 1) txValue = 1;
+      if (txValue < -1) txValue = -1;
+      if (tzValue > 1) tzValue = 1;
+      if (tzValue < -1) tzValue = -1;
       x = -txValue;
       y = -tzValue;
       }
@@ -117,15 +122,15 @@ public class Robot extends TimedRobot {
 
     if (turnToAng != -1){
       double curAng = drivebase.getNavX();
-      if (Math.abs(curAng - turnToAng) < 0.5){
+      if (Math.abs(curAng - turnToAng) < 0.2){
         turnToAng = -1;
       }else{
         double clockwise = (turnToAng - curAng + 360) % 360;
         double counterCwise = (curAng - turnToAng + 360) % 360;
         if (clockwise > counterCwise){
-          z = - Math.max(counterCwise / 180, 0.06);
+          z = - Math.max(counterCwise / 180, 0.03);
         }else{
-          z = Math.max(clockwise / 180, 0.06);
+          z = Math.max(clockwise / 180, 0.03);
         }
       }
     }
@@ -179,6 +184,12 @@ public class Robot extends TimedRobot {
       return (4688.2024);
       }
       
+  }
+
+  private double getClosest(NetworkTable table) {
+    NetworkTableEntry tid = table.getEntry("tid");
+    double id = tid.getDouble(0.0);
+    return id;
   }
 
   @Override
