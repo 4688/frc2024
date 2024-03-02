@@ -25,6 +25,10 @@ public class Robot extends TimedRobot {
   private int turnToAng = -1;
   private boolean isAuto = false;
 
+  double x;
+  double y;
+  double z;
+
   /**
    * This function is run when the robot is first started up and should be used for any
    * initialization code.
@@ -59,11 +63,9 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("LimelightX", txValue);
     SmartDashboard.putNumber("LimelightZ", tzValue);
     
-    double x = xBox.getRawAxis(0)*0.4;
-    double y = xBox.getRawAxis(1)*0.4;
-    double z = xBox.getRawAxis(4)*0.4;
-
-
+    x = xBox.getRawAxis(0)*0.4;
+    y = xBox.getRawAxis(1)*0.4;
+    z = xBox.getRawAxis(4)*0.4;
 
     if (Math.abs(x) < 0.2){
       x = 0;
@@ -84,6 +86,7 @@ public class Robot extends TimedRobot {
       turnToAng = currentPOV;
     }
     lastPOV = currentPOV;
+
 
     if (xBox.getRawButtonPressed(1)){
       isAuto = !isAuto;
@@ -109,9 +112,9 @@ public class Robot extends TimedRobot {
         double clockwise = (turnToAng - curAng + 360) % 360;
         double counterCwise = (curAng - turnToAng + 360) % 360;
         if (clockwise > counterCwise){
-          z = -counterCwise / 180;
+          z = - Math.max(counterCwise / 180, 0.06);
         }else{
-          z = clockwise / 180;
+          z = Math.max(clockwise / 180, 0.06);
         }
       }
     }
