@@ -24,6 +24,9 @@ public class Robot extends TimedRobot {
   private int lastPOV = -1;
   private int turnToAng = -1;
   private boolean isAuto = false;
+  private double[] redTags = {1, 2, 3, 4, 5, 6, 7, 8};
+  private double[] blueTags = {9, 10, 11, 12, 13, 14, 15, 16};
+  public double[] aprilTags;
 
   double x;
   double y;
@@ -47,9 +50,16 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopInit() {
-    int[] redTags = {1, 2, 3, 4, 5, 6, 7, 8};
-    int[] blueTags = {9, 10, 11, 12, 13, 14, 15, 16};
-    NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
+    NetworkTable tableFMS = NetworkTableInstance.getDefault().getTable("FMSInfo");
+    NetworkTableEntry isRedEntry = tableFMS.getEntry("IsRedAlliance");
+    boolean isRed = isRedEntry.getBoolean(true);
+
+    if (isRed) {
+      aprilTags = redTags;
+    }
+    else {
+      aprilTags = blueTags;
+    }
     drivebase.reset();
   }
 
@@ -62,6 +72,7 @@ public class Robot extends TimedRobot {
 
     SmartDashboard.putNumber("LimelightX", txValue);
     SmartDashboard.putNumber("LimelightZ", tzValue);
+    SmartDashboard.putNumber("April tags", aprilTags[0]);
     
     x = xBox.getRawAxis(0)*0.4;
     y = xBox.getRawAxis(1)*0.4;
