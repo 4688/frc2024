@@ -7,6 +7,8 @@ package frc.robot;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -27,6 +29,8 @@ public class Robot extends TimedRobot {
   private double[] redTags = {1, 2, 3, 4, 5, 6, 7, 8};
   private double[] blueTags = {9, 10, 11, 12, 13, 14, 15, 16};
   public double[] aprilTags;
+  private AnalogInput lightBreakSensor = new AnalogInput(0);
+  public boolean lightBreak = false;
 
   double x;
   double y;
@@ -73,6 +77,16 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("LimelightX", txValue);
     SmartDashboard.putNumber("LimelightZ", tzValue);
     SmartDashboard.putNumber("April tags", aprilTags[0]);
+
+    double voltage = lightBreakSensor.getVoltage();
+    if (voltage < 4) {
+      lightBreak = false;
+    }
+    else {
+      lightBreak = true;
+    }
+    SmartDashboard.putNumber("Voltage", voltage);
+    SmartDashboard.putBoolean("Colour Switch Thing", lightBreak);
     
     x = xBox.getRawAxis(0)*0.4;
     y = xBox.getRawAxis(1)*0.4;
