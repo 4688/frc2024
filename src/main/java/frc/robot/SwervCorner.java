@@ -77,6 +77,8 @@ public class SwervCorner {
      */
     public void resetRPM() {
         RPMPosition = driveEncoder.getPosition();
+        driveMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
+        turnMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
     }
 
    

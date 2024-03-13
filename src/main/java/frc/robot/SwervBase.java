@@ -9,10 +9,10 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public class SwervBase {
 
     // Constants for initial rotation offsets for each SwervCorner
-    private static final double ROTATE_OFFSET_FR = 0.794678;
-    private static final double ROTATE_OFFSET_FL = 0.543213;
-    private static final double ROTATE_OFFSET_BR = 0.273430;
-    private static final double ROTATE_OFFSET_BL = 0.298096;
+    private static final double ROTATE_OFFSET_FR = 0.067139;
+    private static final double ROTATE_OFFSET_FL = 0.442383;
+    private static final double ROTATE_OFFSET_BR = 0.370850;
+    private static final double ROTATE_OFFSET_BL = 0.041748;
 
     // Swerve Corners
     private final SwervCorner CornerFR;
@@ -23,7 +23,7 @@ public class SwervBase {
     private double angleFR = 0;
     private double angleBL = 0;
     private double angleBR = 0;
-    private boolean xMode = true;
+    private boolean xMode = false;
 
     // NavX (ROBOT GPS)
     private final AHRS NavX;
@@ -33,10 +33,10 @@ public class SwervBase {
      */
     public SwervBase() {
         // Initialize Swerve Corners with IDs and rotation offsets
-        CornerFR = new SwervCorner(2, 1, 9, ROTATE_OFFSET_FR);
-        CornerFL = new SwervCorner(5, 6, 12, ROTATE_OFFSET_FL);
-        CornerBR = new SwervCorner(4, 3, 10, ROTATE_OFFSET_BR);
-        CornerBL = new SwervCorner(7, 8, 11, ROTATE_OFFSET_BL);
+        CornerFR = new SwervCorner(1, 2, 3, ROTATE_OFFSET_FR);
+        CornerFL = new SwervCorner(4, 5, 6, ROTATE_OFFSET_FL);
+        CornerBR = new SwervCorner(10,11, 12, ROTATE_OFFSET_BR);
+        CornerBL = new SwervCorner(7, 8, 9, ROTATE_OFFSET_BL);
 
         // Initialize NavX
         NavX = new AHRS();

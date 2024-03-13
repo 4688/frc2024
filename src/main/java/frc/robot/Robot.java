@@ -4,6 +4,10 @@
 
 package frc.robot;
 
+import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
+import com.ctre.phoenix.motorcontrol.can.VictorSPX;
+
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -11,6 +15,7 @@ import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.motorcontrol.VictorSP;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
@@ -23,14 +28,19 @@ public class Robot extends TimedRobot {
 
   SwervBase drivebase = new SwervBase();
   Joystick xBox = new Joystick(0);
+  Shooter johnathan = new Shooter(14,15,16);
+  DigitalInput limitSwitch = new DigitalInput(0);
+  VictorSPX climber = new VictorSPX(13);
   private int lastPOV = -1;
   private int turnToAng = -1;
   private boolean isAuto = false;
   private double[] redTags = {1, 2, 3, 4, 5, 6, 7, 8};
   private double[] blueTags = {9, 10, 11, 12, 13, 14, 15, 16};
   public double[] aprilTags;
-  private AnalogInput lightBreakSensor = new AnalogInput(0);
-  public boolean lightBreak = false;
+  public boolean isShooting = false;
+  public boolean isIntaking = false;
+  public int targetRPM = 5800;
+
 
   double x;
   double y;
@@ -57,6 +67,7 @@ public class Robot extends TimedRobot {
     NetworkTable tableFMS = NetworkTableInstance.getDefault().getTable("FMSInfo");
     NetworkTableEntry isRedEntry = tableFMS.getEntry("IsRedAlliance");
     boolean isRed = isRedEntry.getBoolean(true);
+    climber.setNeutralMode(NeutralMode.Brake);
 
     if (isRed) {
       aprilTags = redTags;
@@ -79,19 +90,11 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("LimelightZ", tzValue);
     SmartDashboard.putNumber("April tags", aprilTags[0]);
 
-    double voltage = lightBreakSensor.getVoltage();
-    if (voltage < 4) {
-      lightBreak = false;
-    }
-    else {
-      lightBreak = true;
-    }
-    SmartDashboard.putNumber("Voltage", voltage);
-    SmartDashboard.putBoolean("Colour Switch Thing", lightBreak);
+    SmartDashboard.putBoolean("Climb Switch", limitSwitch.get());
     
-    x = xBox.getRawAxis(0)*0.4;
-    y = xBox.getRawAxis(1)*0.4;
-    z = xBox.getRawAxis(4)*0.4;
+    x = xBox.getRawAxis(0);
+    y = xBox.getRawAxis(1);
+    z = xBox.getRawAxis(4);
 
     if (Math.abs(x) < 0.2){
       x = 0;
@@ -149,18 +152,57 @@ public class Robot extends TimedRobot {
       }
     }
 
-    if (xBox.getRawButtonPressed(2)){
+    if (xBox.getRawButtonPressed(7)){
       drivebase.reset();
     }
-    if (xBox.getRawButtonPressed(3)){
+    if (xBox.getRawButtonPressed(8)){
       drivebase.xToggle();
     }
 
-    double m = xBox.getRawAxis(2);
-    drivebase.liveMove(y * m, x * m, z * m);
+    if (xBox.getRawButton(4)){
+      johnathan.intake();
+    }
+
+    if (johnathan.getActiveShooter()){
+      if (xBox.getRawButtonPressed(3)){
+        isShooting = true;
+      }
+      if(isShooting){
+        isShooting = johnathan.shoot();
+      }
+    }else{
+      if (xBox.getRawButton(3)){
+        johnathan.shoot();
+      }
+    }
+
+    if (xBox.getRawButtonPressed(2)){
+      isIntaking = false;
+      isShooting = false;
+      johnathan.switchMode();
+    }
+
+    if (xBox.getRawButtonPressed(6)){
+      targetRPM = targetRPM - 100;
+      johnathan.setfireRPM(targetRPM);
+    }
+    if (xBox.getRawButton(6)){
+      x = x * 0.3;
+      y = y * 0.3;
+      z = z * 0.3;
+      
+    }
+
+    if (!limitSwitch.get()){
+      climber.set(ControlMode.PercentOutput,xBox.getRawAxis(3));
+    }else{
+      climber.set(ControlMode.PercentOutput,xBox.getRawAxis(3) - xBox.getRawAxis(2));
+    }
+
+    johnathan.displayDiagnostics();
+
+    drivebase.liveMove(y, x, z);
     drivebase.getEncoders();
-
-
 
   }
 
