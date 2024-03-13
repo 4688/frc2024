@@ -77,8 +77,6 @@ public class SwervCorner {
      */
     public void resetRPM() {
         RPMPosition = driveEncoder.getPosition();
-        driveMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
-        turnMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
     }
 
    
@@ -97,7 +95,7 @@ public class SwervCorner {
      * @return Number of rotations since last RPM reset.
      */
     public double getDriveRotations() {
-        return (driveEncoder.getPosition() - RPMPosition);
+        return (driveEncoder.getPosition() - RPMPosition) / WHEEL_TURN_RATIO * 0.319278;
     }
 
     /**

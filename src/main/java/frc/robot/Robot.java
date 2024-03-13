@@ -11,11 +11,9 @@ import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.motorcontrol.VictorSP;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
@@ -45,6 +43,7 @@ public class Robot extends TimedRobot {
   double x;
   double y;
   double z;
+  double m;
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -161,19 +160,24 @@ public class Robot extends TimedRobot {
 
     if (xBox.getRawButton(4)){
       johnathan.intake();
-    }
-
-    if (johnathan.getActiveShooter()){
-      if (xBox.getRawButtonPressed(3)){
-        isShooting = true;
-      }
-      if(isShooting){
-        isShooting = johnathan.shoot();
-      }
+    }else{
+      if (johnathan.getActiveShooter()){
+        if (xBox.getRawButton(3)){
+          isShooting = true;
+        }
+        if(isShooting){
+          isShooting = johnathan.shoot();
+        }else{
+          johnathan.stop();
+        }
     }else{
       if (xBox.getRawButton(3)){
         johnathan.shoot();
+      }else{
+        johnathan.stop();
       }
+    }
+      
     }
 
     if (xBox.getRawButtonPressed(2)){
@@ -182,26 +186,19 @@ public class Robot extends TimedRobot {
       johnathan.switchMode();
     }
 
-    if (xBox.getRawButtonPressed(6)){
-      targetRPM = targetRPM - 100;
-      johnathan.setfireRPM(targetRPM);
-    }
-    if (xBox.getRawButton(6)){
-      x = x * 0.3;
-      y = y * 0.3;
-      z = z * 0.3;
-      
-    }
-
-    if (!limitSwitch.get()){
-      climber.set(ControlMode.PercentOutput,xBox.getRawAxis(3));
-    }else{
-      climber.set(ControlMode.PercentOutput,xBox.getRawAxis(3) - xBox.getRawAxis(2));
+      if (xBox.getRawButton(6) && limitSwitch.get()){
+        climber.set(ControlMode.PercentOutput,-1);
+      }else{
+      if (xBox.getRawButton(5)){
+        climber.set(ControlMode.PercentOutput,0.8);
+      }else{
+        climber.set(ControlMode.PercentOutput,0);
+      }
     }
 
     johnathan.displayDiagnostics();
-
-    drivebase.liveMove(y, x, z);
+    m = 1 - (xBox.getRawAxis(3) * 0.8);
+    drivebase.liveMove(y * m, x * m, z * m);
     drivebase.getEncoders();
 
   }

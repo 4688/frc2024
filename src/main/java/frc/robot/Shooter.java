@@ -37,7 +37,6 @@ public class Shooter {
 
     public boolean intake() {
         if (isShooterActive) {
-            startTimer();
             double voltage = shootSensor.getVoltage();
             if (voltage > 4) {
                 shootMotor.set(0);
