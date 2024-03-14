@@ -47,10 +47,10 @@ public class SwervBase {
      */
     public void reset() {
         NavX.reset();
-        CornerFL.resetRPM();
-        CornerFR.resetRPM();
-        CornerBL.resetRPM();
-        CornerBR.resetRPM();
+        CornerFL.resetDrive();
+        CornerFR.resetDrive();
+        CornerBL.resetDrive();
+        CornerBR.resetDrive();
     }
 
     public double getNavX(){
@@ -69,9 +69,15 @@ public class SwervBase {
         SmartDashboard.putNumber("FR Encoder", CornerFR.getTurnEnc());
         SmartDashboard.putNumber("BR Encoder", CornerBR.getTurnEnc());
         SmartDashboard.putNumber("BL Encoder", CornerBL.getTurnEnc());
-        SmartDashboard.putNumber("FL Actual Angle", CornerFL.getWheelAngle());
 
-        SmartDashboard.putNumber("KMPH", CornerBL.WheelVelocity());
+        SmartDashboard.putNumber("FL DISTANCE", CornerFL.getDistance());
+        SmartDashboard.putNumber("FR DISTANCE", CornerFR.getDistance());
+        SmartDashboard.putNumber("BL DISTANCE", CornerBL.getDistance());
+        SmartDashboard.putNumber("BR DISTANCE", CornerBR.getDistance());
+    }
+
+    public double getDistance(){
+        return Math.min(Math.min(CornerFL.getDistance(),CornerFR.getDistance()) , Math.min(CornerBL.getDistance(),CornerBR.getDistance()));
     }
 
     /**

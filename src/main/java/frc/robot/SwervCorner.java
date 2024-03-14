@@ -47,7 +47,7 @@ public class SwervCorner {
     // Storing Corner Specific Settings
     private double rotateOffset; // Offset for rotation calibration
     private int curDirection; // Current direction of the wheel, 1 for forward, -1 for reverse
-    private double RPMPosition; // Position of the wheel in RPM for resetting
+    private double last_drive_position; // Position of the wheel in RPM for resetting
 
     /**
      * Initializes a Swerve Corner with specified IDs and rotation offset.
@@ -69,14 +69,14 @@ public class SwervCorner {
         // Setting Corner Specific Settings
         this.rotateOffset = rotateOffset;
         this.curDirection = 1; // Initial direction set to forward
-        RPMPosition = 0; // Initial RPM position reset
+        last_drive_position = 0; // Initial RPM position reset
     }
 
     /**
      * Resets the RPM position to the current position of the drive encoder.
      */
-    public void resetRPM() {
-        RPMPosition = driveEncoder.getPosition();
+    public void resetDrive() {
+        last_drive_position = driveEncoder.getPosition();
     }
 
    
@@ -94,8 +94,8 @@ public class SwervCorner {
      *
      * @return Number of rotations since last RPM reset.
      */
-    public double getDriveRotations() {
-        return (driveEncoder.getPosition() - RPMPosition) / WHEEL_TURN_RATIO * 0.319278;
+    public double getDistance() {
+        return Math.abs((driveEncoder.getPosition() - last_drive_position) / WHEEL_TURN_RATIO * 0.319278);
     }
 
     /**

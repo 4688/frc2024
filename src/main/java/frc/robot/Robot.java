@@ -119,7 +119,7 @@ public class Robot extends TimedRobot {
     if (xBox.getRawButtonPressed(1)){
       isAuto = !isAuto;
     }
-
+/*
     if(isAuto){
       tzValue = tzValue - 1;
       if ((Math.abs(txValue) < 0.02 && Math.abs(tzValue) < 0.02) || tzValue > 200){
@@ -134,6 +134,16 @@ public class Robot extends TimedRobot {
       y = -tzValue;
       }
       
+    }
+  */
+
+    if(isAuto){
+      double distToTarget = 0.5 - drivebase.getDistance();
+      if (Math.abs(distToTarget) < 0.02){
+        isAuto = false;
+      }else{
+        y = distToTarget;
+      }
     }
 
     if (turnToAng != -1){
