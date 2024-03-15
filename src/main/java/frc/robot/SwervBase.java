@@ -24,6 +24,7 @@ public class SwervBase {
     private double angleBL = 0;
     private double angleBR = 0;
     private boolean xMode = false;
+    private double turnOffset = 0;
 
     // NavX (ROBOT GPS)
     private final AHRS NavX;
@@ -47,6 +48,9 @@ public class SwervBase {
      */
     public void reset() {
         NavX.reset();
+    }
+
+    public void resetDistance() {
         CornerFL.resetDrive();
         CornerFR.resetDrive();
         CornerBL.resetDrive();
@@ -80,6 +84,10 @@ public class SwervBase {
         return Math.min(Math.min(CornerFL.getDistance(),CornerFR.getDistance()) , Math.min(CornerBL.getDistance(),CornerBR.getDistance()));
     }
 
+    public void setTurnOffset(double a){
+        turnOffset = a;
+    }
+
     /**
      * Drives the swerve base using input x, y, and z values for movement and rotation.
      * @param x The x-component of the movement vector.
@@ -90,7 +98,7 @@ public class SwervBase {
 
         
         // Calculate Turn based on NavX
-        double roboturn = (NavX.getYaw() + 360) % 360;
+        double roboturn = (NavX.getYaw() - turnOffset + 360) % 360;
         SmartDashboard.putNumber("NavX", roboturn);
         double angle = Math.toDegrees(Math.atan2(y, x));
         if (angle < 0) angle += 360; 

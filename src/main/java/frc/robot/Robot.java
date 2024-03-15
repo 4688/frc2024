@@ -34,12 +34,14 @@ public class Robot extends TimedRobot {
   private int lastPOV = -1;
   private int turnToAng = -1;
   private boolean isAuto = false;
-  private double[] redTags = {1, 2, 3, 4, 5, 6, 7, 8};
-  private double[] blueTags = {9, 10, 11, 12, 13, 14, 15, 16};
   public double[] aprilTags;
   public boolean isShooting = false;
   public boolean isIntaking = false;
   public int targetRPM = 5600;
+  public boolean isRed = true;
+  double saveZ = 0;
+  double saveX = 0;
+  double contID = 0;
 
 
   double x;
@@ -67,15 +69,7 @@ public class Robot extends TimedRobot {
   public void teleopInit() {
     NetworkTable tableFMS = NetworkTableInstance.getDefault().getTable("FMSInfo");
     NetworkTableEntry isRedEntry = tableFMS.getEntry("IsRedAlliance");
-    boolean isRed = isRedEntry.getBoolean(true);
-    climber.setNeutralMode(NeutralMode.Brake);
-
-    if (isRed) {
-      aprilTags = redTags;
-    }
-    else {
-      aprilTags = blueTags;
-    }
+    isRed = isRedEntry.getBoolean(true);
     drivebase.reset();
     lights.set(-0.75);
   }
@@ -89,6 +83,7 @@ public class Robot extends TimedRobot {
     double closestId = getClosest(table);
     double txValue = getAprilTagValueX(table, (int)closestId);
     double tzValue = getAprilTagValueZ(table, (int)closestId);
+    double curAng = drivebase.getNavX();
 
     SmartDashboard.putNumber("LimelightX", txValue);
     SmartDashboard.putNumber("LimelightZ", tzValue);
@@ -123,6 +118,7 @@ public class Robot extends TimedRobot {
 
     if (xBox.getRawButtonPressed(1)){
       isAuto = !isAuto;
+      drivebase.setTurnOffset(0);
     }
 /*
     if(isAuto){
@@ -143,18 +139,202 @@ public class Robot extends TimedRobot {
   */
 
     if(isAuto){
-      lights.set(-0.05);
-      double distToTarget = 0.5 - drivebase.getDistance();
-      if (Math.abs(distToTarget) < 0.02){
-        isAuto = false;
-        lights.set(-0.75);
+      drivebase.setTurnOffset(drivebase.getNavX());
+      if(isRed){
+        if(contID == 4){
+          if(!johnathan.shoot()){
+            isAuto = false;
+            drivebase.setTurnOffset(0);
+            contID = 0;
+          }
+        }
+        else if(closestId == 4){
+          double dist = Math.sqrt(Math.pow(txValue, 2) + Math.pow(tzValue, 2));
+          double angle = Math.toDegrees(Math.atan2(tzValue, txValue)) - 180;
+          if (angle < 0) angle += 360;
+          if (txValue > 1) txValue = 1;
+          if (txValue < -1) txValue = -1;
+          if (tzValue > 1) tzValue = 1;
+          if (tzValue < -1) tzValue = -1;
+          turnToAng = (int) angle;
+          if (dist > 2.25){
+            x = -txValue;
+            y = -tzValue;
+          }else if(dist < 1.2){
+            x = txValue;
+            y = tzValue;
+          }else{
+            turnToAng = (int) (angle + 26.5) % 360;
+            contID = 4;
+          }
+        }
+
+        else if(closestId == 3){
+          double angle = Math.toDegrees(Math.atan2(tzValue, txValue - 0.616)) - 180;
+          if (angle < 0) angle += 360;
+          turnToAng = (int) angle % 360;
+        }
+
+        if(closestId == 9 || closestId == 10){
+          txValue = txValue - 0.1;
+          if ((Math.abs(txValue) < 0.02 && Math.abs(tzValue) < 0.02) || tzValue > 200){
+            contID = 9;
+            drivebase.resetDistance();
+          }else{
+            turnToAng = 300;
+            if (txValue > 1) txValue = 1;
+            if (txValue < -1) txValue = -1;
+            if (tzValue > 1) tzValue = 1;
+            if (tzValue < -1) tzValue = -1;
+            x = -txValue;
+            y = -tzValue;
+            saveZ = txValue;
+            saveX = tzValue;
+          }
+        }
+        else if(contID == 9){
+          double distToTarget = Math.sqrt(Math.pow(saveX, 2) + Math.pow(saveZ, 2)) - drivebase.getDistance();
+          if(distToTarget < 0.01 && distToTarget > -0.01){
+            contID = 0;
+            drivebase.resetDistance();
+          }else{
+            double regy = saveZ /(Math.abs(saveX) + Math.abs(saveZ));
+            double regx = saveX / (Math.abs(saveX) + Math.abs(saveZ));
+            y = -regy * distToTarget;
+            x = -regx * distToTarget;
+          }
+        }else if(closestId == 5){
+          txValue = txValue + 0.1;
+          if ((Math.abs(txValue) < 0.02 && Math.abs(tzValue) < 0.02) || tzValue > 200){
+            contID = 5;
+            drivebase.resetDistance();
+          }else{
+            turnToAng = 90;
+            if (txValue > 1) txValue = 1;
+            if (txValue < -1) txValue = -1;
+            if (tzValue > 1) tzValue = 1;
+            if (tzValue < -1) tzValue = -1;
+            x = -txValue;
+            y = -tzValue;
+            saveZ = txValue;
+            saveX = tzValue;
+          }
+        }
+        else if(contID == 5){
+          double distToTarget = Math.sqrt(Math.pow(saveX, 2) + Math.pow(saveZ, 2)) - drivebase.getDistance();
+          if(distToTarget < 0.01 && distToTarget > -0.01){
+            contID = 0;
+            drivebase.resetDistance();
+          }else{
+            double regy = saveZ /(Math.abs(saveX) + Math.abs(saveZ));
+            double regx = saveX / (Math.abs(saveX) + Math.abs(saveZ));
+            y = -regy * distToTarget;
+            x = -regx * distToTarget;
+          }
+        }else{
+          isAuto = false;
+          drivebase.setTurnOffset(0);
+        }
       }else{
-        y = distToTarget;
+        if(contID == 7){
+          if(!johnathan.shoot()){
+            isAuto = false;
+            drivebase.setTurnOffset(0);
+            contID = 0;
+          }
+        }
+        else if(closestId == 7){
+          double dist = Math.sqrt(Math.pow(txValue, 2) + Math.pow(tzValue, 2));
+          double angle = Math.toDegrees(Math.atan2(tzValue, txValue)) - 180;
+          if (angle < 0) angle += 360;
+          if (txValue > 1) txValue = 1;
+          if (txValue < -1) txValue = -1;
+          if (tzValue > 1) tzValue = 1;
+          if (tzValue < -1) tzValue = -1;
+          turnToAng = (int) angle;
+          if (dist > 2.25){
+            x = -txValue;
+            y = -tzValue;
+          }else if(dist < 1.2){
+            x = txValue;
+            y = tzValue;
+          }else{
+            turnToAng = (int) (angle + 26.5) % 360;
+            contID = 7;
+          }
+        }
+
+        else if(closestId == 8){
+          double angle = Math.toDegrees(Math.atan2(tzValue, txValue + 0.616)) - 180;
+          if (angle < 0) angle += 360;
+          turnToAng = (int) angle % 360;
+        }
+
+        if(closestId == 1 || closestId == 2){
+          txValue = txValue - 0.1;
+          if ((Math.abs(txValue) < 0.02 && Math.abs(tzValue) < 0.02) || tzValue > 200){
+            contID = 1;
+            drivebase.resetDistance();
+          }else{
+            turnToAng = 60;
+            if (txValue > 1) txValue = 1;
+            if (txValue < -1) txValue = -1;
+            if (tzValue > 1) tzValue = 1;
+            if (tzValue < -1) tzValue = -1;
+            x = -txValue;
+            y = -tzValue;
+            saveZ = txValue;
+            saveX = tzValue;
+          }
+        }
+        else if(contID == 1){
+          double distToTarget = Math.sqrt(Math.pow(saveX, 2) + Math.pow(saveZ, 2)) - drivebase.getDistance();
+          if(distToTarget < 0.01 && distToTarget > -0.01){
+            contID = 0;
+            drivebase.resetDistance();
+          }else{
+            double regy = saveZ /(Math.abs(saveX) + Math.abs(saveZ));
+            double regx = saveX / (Math.abs(saveX) + Math.abs(saveZ));
+            y = -regy * distToTarget;
+            x = -regx * distToTarget;
+          }
+        }else if(closestId == 6){
+          txValue = txValue + 0.1;
+          if ((Math.abs(txValue) < 0.02 && Math.abs(tzValue) < 0.02) || tzValue > 200){
+            contID = 6;
+            drivebase.resetDistance();
+          }else{
+            turnToAng = 270;
+            if (txValue > 1) txValue = 1;
+            if (txValue < -1) txValue = -1;
+            if (tzValue > 1) tzValue = 1;
+            if (tzValue < -1) tzValue = -1;
+            x = -txValue;
+            y = -tzValue;
+            saveZ = txValue;
+            saveX = tzValue;
+          }
+        }
+        else if(contID == 6){
+          double distToTarget = Math.sqrt(Math.pow(saveX, 2) + Math.pow(saveZ, 2)) - drivebase.getDistance();
+          if(distToTarget < 0.01 && distToTarget > -0.01){
+            contID = 0;
+            drivebase.resetDistance();
+          }else{
+            double regy = saveZ /(Math.abs(saveX) + Math.abs(saveZ));
+            double regx = saveX / (Math.abs(saveX) + Math.abs(saveZ));
+            y = -regy * distToTarget;
+            x = -regx * distToTarget;
+          }
+        }else{
+          isAuto = false;
+          drivebase.setTurnOffset(0);
+        }
       }
     }
+        
 
     if (turnToAng != -1){
-      double curAng = drivebase.getNavX();
       if (Math.abs(curAng - turnToAng) < 0.2){
         turnToAng = -1;
       }else{
