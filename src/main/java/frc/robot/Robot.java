@@ -139,7 +139,6 @@ public class Robot extends TimedRobot {
   */
 
     if(isAuto){
-      drivebase.setTurnOffset(drivebase.getNavX());
       if(isRed){
         if(contID == 4){
           if(!johnathan.shoot()){
@@ -156,6 +155,7 @@ public class Robot extends TimedRobot {
           if (txValue < -1) txValue = -1;
           if (tzValue > 1) tzValue = 1;
           if (tzValue < -1) tzValue = -1;
+          drivebase.setTurnOffset(180);
           turnToAng = (int) angle;
           if (dist > 2.25){
             x = -txValue;
@@ -176,12 +176,18 @@ public class Robot extends TimedRobot {
         }
 
         if(closestId == 9 || closestId == 10){
-          txValue = txValue - 0.1;
+          if (johnathan.getActiveShooter()){
+            txValue = txValue - 0.1;
+          }else{
+            txValue = txValue + 0.1;
+          }
+          
           if ((Math.abs(txValue) < 0.02 && Math.abs(tzValue) < 0.02) || tzValue > 200){
             contID = 9;
             drivebase.resetDistance();
           }else{
             turnToAng = 300;
+            drivebase.setTurnOffset(300);
             if (txValue > 1) txValue = 1;
             if (txValue < -1) txValue = -1;
             if (tzValue > 1) tzValue = 1;
@@ -210,6 +216,7 @@ public class Robot extends TimedRobot {
             drivebase.resetDistance();
           }else{
             turnToAng = 90;
+            drivebase.setTurnOffset(90);
             if (txValue > 1) txValue = 1;
             if (txValue < -1) txValue = -1;
             if (tzValue > 1) tzValue = 1;
@@ -252,6 +259,7 @@ public class Robot extends TimedRobot {
           if (tzValue > 1) tzValue = 1;
           if (tzValue < -1) tzValue = -1;
           turnToAng = (int) angle;
+          drivebase.setTurnOffset(180);
           if (dist > 2.25){
             x = -txValue;
             y = -tzValue;
@@ -271,12 +279,18 @@ public class Robot extends TimedRobot {
         }
 
         if(closestId == 1 || closestId == 2){
-          txValue = txValue - 0.1;
+          if (johnathan.getActiveShooter()){
+            txValue = txValue - 0.1;
+          }else{
+            txValue = txValue + 0.1;
+          }
+          
           if ((Math.abs(txValue) < 0.02 && Math.abs(tzValue) < 0.02) || tzValue > 200){
             contID = 1;
             drivebase.resetDistance();
           }else{
             turnToAng = 60;
+            drivebase.setTurnOffset(60);
             if (txValue > 1) txValue = 1;
             if (txValue < -1) txValue = -1;
             if (tzValue > 1) tzValue = 1;
@@ -305,6 +319,7 @@ public class Robot extends TimedRobot {
             drivebase.resetDistance();
           }else{
             turnToAng = 270;
+            drivebase.setTurnOffset(270);
             if (txValue > 1) txValue = 1;
             if (txValue < -1) txValue = -1;
             if (tzValue > 1) tzValue = 1;
