@@ -8,7 +8,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Shooter {
-    private static final int SHOOT_START_RPM = 5800;
+    private static final int SHOOT_START_RPM = 5600;
     private static final int TOP_CLAW_SENSOR_PORT = 0;
     private static final int INTAKE_SENSOR_PORT = 1;
 

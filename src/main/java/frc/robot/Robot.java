@@ -14,6 +14,7 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
@@ -29,6 +30,7 @@ public class Robot extends TimedRobot {
   Shooter johnathan = new Shooter(14,15,16);
   DigitalInput limitSwitch = new DigitalInput(0);
   VictorSPX climber = new VictorSPX(13);
+  Spark lights = new Spark(0);
   private int lastPOV = -1;
   private int turnToAng = -1;
   private boolean isAuto = false;
@@ -37,7 +39,7 @@ public class Robot extends TimedRobot {
   public double[] aprilTags;
   public boolean isShooting = false;
   public boolean isIntaking = false;
-  public int targetRPM = 5800;
+  public int targetRPM = 5600;
 
 
   double x;
@@ -75,7 +77,10 @@ public class Robot extends TimedRobot {
       aprilTags = blueTags;
     }
     drivebase.reset();
+    lights.set(-0.75);
   }
+
+  
 
   @Override
   public void teleopPeriodic() {
@@ -138,9 +143,11 @@ public class Robot extends TimedRobot {
   */
 
     if(isAuto){
+      lights.set(-0.05);
       double distToTarget = 0.5 - drivebase.getDistance();
       if (Math.abs(distToTarget) < 0.02){
         isAuto = false;
+        lights.set(-0.75);
       }else{
         y = distToTarget;
       }
