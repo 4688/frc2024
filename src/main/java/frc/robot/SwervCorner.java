@@ -29,8 +29,6 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
-import edu.wpi.first.math.kinematics.DifferentialDriveWheelPositions;
-
 public class SwervCorner {
 
     // Constants for calculations

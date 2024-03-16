@@ -5,9 +5,7 @@
 package frc.robot;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
-
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -17,12 +15,6 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-/**
- * The VM is configured to automatically run this class, and to call the functions corresponding to
- * each mode, as described in the TimedRobot documentation. If you change the name of this class or
- * the package after creating this project, you must also update the build.gradle file in the
- * project.
- */
 public class Robot extends TimedRobot {
 
   SwervBase drivebase = new SwervBase();
@@ -31,17 +23,17 @@ public class Robot extends TimedRobot {
   DigitalInput limitSwitch = new DigitalInput(0);
   VictorSPX climber = new VictorSPX(13);
   Spark lights = new Spark(0);
+
   private int lastPOV = -1;
   private int turnToAng = -1;
+
   private boolean isAuto = false;
-  public double[] aprilTags;
   public boolean isShooting = false;
-  public boolean isIntaking = false;
-  public int targetRPM = 5600;
+
   public boolean isRed = true;
   double saveZ = 0;
   double saveX = 0;
-  double contID = 0;
+  int contID = 0;
 
 
   double x;
@@ -80,14 +72,18 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
 
     NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
-    double closestId = getClosest(table);
+    int closestId = (int) getClosest(table);
     double txValue = getAprilTagValueX(table, (int)closestId);
     double tzValue = getAprilTagValueZ(table, (int)closestId);
     double curAng = drivebase.getNavX();
 
     SmartDashboard.putNumber("LimelightX", txValue);
     SmartDashboard.putNumber("LimelightZ", tzValue);
-    SmartDashboard.putNumber("April tags", aprilTags[0]);
+
+    SmartDashboard.putBoolean("IS AUTO", isAuto);
+    SmartDashboard.putNumber("LIMELIGHT ID", closestId);
+    SmartDashboard.putNumber("AUTO STEP", contID);
+    SmartDashboard.putBoolean("ALLIANCE", isRed);
 
     SmartDashboard.putBoolean("Climb Switch", limitSwitch.get());
     
@@ -120,23 +116,7 @@ public class Robot extends TimedRobot {
       isAuto = !isAuto;
       drivebase.setTurnOffset(0);
     }
-/*
-    if(isAuto){
-      tzValue = tzValue - 1;
-      if ((Math.abs(txValue) < 0.02 && Math.abs(tzValue) < 0.02) || tzValue > 200){
-        isAuto = false;
-      }else{
-      turnToAng = 0;
-      if (txValue > 1) txValue = 1;
-      if (txValue < -1) txValue = -1;
-      if (tzValue > 1) tzValue = 1;
-      if (tzValue < -1) tzValue = -1;
-      x = -txValue;
-      y = -tzValue;
-      }
-      
-    }
-  */
+    SmartDashboard.putBoolean("IS AUTO", isAuto);
 
     if(isAuto){
       if(isRed){
@@ -245,6 +225,7 @@ public class Robot extends TimedRobot {
       }else{
         if(contID == 7){
           if(!johnathan.shoot()){
+            SmartDashboard.putNumber("PING", 4688);
             isAuto = false;
             drivebase.setTurnOffset(0);
             contID = 0;
@@ -252,13 +233,15 @@ public class Robot extends TimedRobot {
         }
         else if(closestId == 7){
           double dist = Math.sqrt(Math.pow(txValue, 2) + Math.pow(tzValue, 2));
-          double angle = Math.toDegrees(Math.atan2(tzValue, txValue)) - 180;
+          double angle = Math.toDegrees(Math.atan2(tzValue, txValue))-90;
           if (angle < 0) angle += 360;
           if (txValue > 1) txValue = 1;
           if (txValue < -1) txValue = -1;
           if (tzValue > 1) tzValue = 1;
           if (tzValue < -1) tzValue = -1;
           turnToAng = (int) angle;
+          SmartDashboard.putNumber("dist", dist);
+          SmartDashboard.putNumber("angle", angle);
           drivebase.setTurnOffset(180);
           if (dist > 2.25){
             x = -txValue;
@@ -342,7 +325,7 @@ public class Robot extends TimedRobot {
             x = -regx * distToTarget;
           }
         }else{
-          isAuto = false;
+          //isAuto = false;
           drivebase.setTurnOffset(0);
         }
       }
@@ -393,7 +376,6 @@ public class Robot extends TimedRobot {
     }
 
     if (xBox.getRawButtonPressed(2)){
-      isIntaking = false;
       isShooting = false;
       johnathan.switchMode();
     }
@@ -474,4 +456,6 @@ public class Robot extends TimedRobot {
 
   @Override
   public void simulationPeriodic() {}
+
+
 }
