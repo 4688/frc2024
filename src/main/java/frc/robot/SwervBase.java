@@ -98,7 +98,8 @@ public class SwervBase {
 
         
         // Calculate Turn based on NavX
-        double roboturn = (NavX.getYaw() - turnOffset + 360) % 360;
+        double roboturn = (NavX.getYaw() + 360) % 360;
+        roboturn = (roboturn - turnOffset + 360) % 360;
         SmartDashboard.putNumber("NavX", roboturn);
         double angle = Math.toDegrees(Math.atan2(y, x));
         if (angle < 0) angle += 360; 

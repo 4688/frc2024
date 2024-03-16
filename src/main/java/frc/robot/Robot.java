@@ -107,6 +107,12 @@ public class Robot extends TimedRobot {
     }
     lastPOV = currentPOV;
 
+    if (isAuto) {
+      handleAutoMode();
+    } else {
+      drivebase.setTurnOffset(0);
+    }
+
 
     if (turnToAng != -1) {
         adjustTurnAngle(curAng);
@@ -156,12 +162,6 @@ public class Robot extends TimedRobot {
       }else{
         climber.set(ControlMode.PercentOutput,0);
       }
-    }
-
-    if (isAuto) {
-      handleAutoMode();
-    } else {
-      drivebase.setTurnOffset(0);
     }
 
     m = 1 - (xBox.getRawAxis(3) * 0.8);
@@ -289,217 +289,210 @@ public class Robot extends TimedRobot {
 
   private void handleRedTeamLogic() {
     if(contID == 4){
-          if(!johnathan.shoot()){
-            isAuto = false;
-            drivebase.setTurnOffset(0);
-            contID = 0;
-          }
-        }
-        else if(closestId == 4){
-          double dist = Math.sqrt(Math.pow(txValue, 2) + Math.pow(tzValue, 2));
-          double angle = Math.toDegrees(Math.atan2(tzValue, txValue)) - 180;
-          if (angle < 0) angle += 360;
-          if (txValue > 1) txValue = 1;
-          if (txValue < -1) txValue = -1;
-          if (tzValue > 1) tzValue = 1;
-          if (tzValue < -1) tzValue = -1;
-          drivebase.setTurnOffset(180);
-          turnToAng = (int) angle;
-          if (dist > 2.25){
-            x = -txValue;
-            y = -tzValue;
-          }else if(dist < 1.2){
-            x = txValue;
-            y = tzValue;
-          }else{
-            turnToAng = (int) (angle + 26.5) % 360;
-            contID = 4;
-          }
-        }
-
-        else if(closestId == 3){
-          double angle = Math.toDegrees(Math.atan2(tzValue, txValue - 0.616)) - 180;
-          if (angle < 0) angle += 360;
-          turnToAng = (int) angle % 360;
-        }
-
-        if(closestId == 9 || closestId == 10){
-          if (johnathan.getActiveShooter()){
-            txValue = txValue - 0.1;
-          }else{
-            txValue = txValue + 0.1;
-          }
-          
-          if ((Math.abs(txValue) < 0.02 && Math.abs(tzValue) < 0.02) || tzValue > 200){
-            contID = 9;
-            drivebase.resetDistance();
-          }else{
-            turnToAng = 300;
-            drivebase.setTurnOffset(300);
-            if (txValue > 1) txValue = 1;
-            if (txValue < -1) txValue = -1;
-            if (tzValue > 1) tzValue = 1;
-            if (tzValue < -1) tzValue = -1;
-            x = -txValue;
-            y = -tzValue;
-            saveZ = txValue;
-            saveX = tzValue;
-          }
-        }
-        else if(contID == 9){
-          double distToTarget = Math.sqrt(Math.pow(saveX, 2) + Math.pow(saveZ, 2)) - drivebase.getDistance();
-          if(distToTarget < 0.01 && distToTarget > -0.01){
-            contID = 0;
-            drivebase.resetDistance();
-          }else{
-            double regy = saveZ /(Math.abs(saveX) + Math.abs(saveZ));
-            double regx = saveX / (Math.abs(saveX) + Math.abs(saveZ));
-            y = -regy * distToTarget;
-            x = -regx * distToTarget;
-          }
-        }else if(closestId == 5){
-          txValue = txValue + 0.1;
-          if ((Math.abs(txValue) < 0.02 && Math.abs(tzValue) < 0.02) || tzValue > 200){
-            contID = 5;
-            drivebase.resetDistance();
-          }else{
-            turnToAng = 90;
-            drivebase.setTurnOffset(90);
-            if (txValue > 1) txValue = 1;
-            if (txValue < -1) txValue = -1;
-            if (tzValue > 1) tzValue = 1;
-            if (tzValue < -1) tzValue = -1;
-            x = -txValue;
-            y = -tzValue;
-            saveZ = txValue;
-            saveX = tzValue;
-          }
-        }
-        else if(contID == 5){
-          double distToTarget = Math.sqrt(Math.pow(saveX, 2) + Math.pow(saveZ, 2)) - drivebase.getDistance();
-          if(distToTarget < 0.01 && distToTarget > -0.01){
-            contID = 0;
-            drivebase.resetDistance();
-          }else{
-            double regy = saveZ /(Math.abs(saveX) + Math.abs(saveZ));
-            double regx = saveX / (Math.abs(saveX) + Math.abs(saveZ));
-            y = -regy * distToTarget;
-            x = -regx * distToTarget;
-          }
-        }else{
-          isAuto = false;
-          drivebase.setTurnOffset(0);
-        }
+      SmartDashboard.putString("Last Auto Action", "FIRING");
+      isShooting = true;
+      isAuto = false;
+      drivebase.setTurnOffset(0);
+      contID = 0;
+    }else if(closestId == 4){
+      SmartDashboard.putString("Last Auto Action", "LINING UP TO SHOOT");
+      double dist = Math.sqrt(Math.pow(txValue, 2) + Math.pow(tzValue, 2));
+      double angle = Math.toDegrees(Math.atan2(tzValue, txValue)) + 90;
+      if (angle < 0) angle += 360;
+      if (txValue > 1) txValue = 1;
+      if (txValue < -1) txValue = -1;
+      if (tzValue > 1) tzValue = 1;
+      if (tzValue < -1) tzValue = -1;
+      drivebase.setTurnOffset(180);
+      turnToAng = (int) angle;
+      if (dist > 2.25){
+        x = -txValue;
+        y = -tzValue;
+      }else if(dist < 1.2){
+        x = txValue;
+        y = tzValue;
+      }else{
+        turnToAng = (int) (angle + 26.5) % 360;
+        contID = 4;
       }
+    }else if(closestId == 3){
+      SmartDashboard.putString("Last Auto Action", "Adjusting To Shooting Tag");
+      double angle = Math.toDegrees(Math.atan2(tzValue, txValue + 0.616)) + 90;
+      if (angle < 0) angle += 360;
+      turnToAng = (int) angle % 360;
+    }else if(closestId == 9 || closestId == 10){
+      SmartDashboard.putString("Last Auto Action", "Picking Up");
+      turnToAng = 300;
+      drivebase.setTurnOffset(300);
+      if (johnathan.getActiveShooter()){
+        txValue = txValue - 0.1;
+      }else{
+        txValue = txValue + 0.1;
+      }
+      saveZ = txValue;
+      saveX = tzValue;
+      contID = 9;
+      drivebase.resetDistance();
+      double len = Math.sqrt(Math.pow(txValue, 2) + Math.pow(tzValue, 2));
+      if (len > 1){
+        txValue = txValue/len;
+        tzValue = tzValue/len;
+      }
+      x = -txValue;
+      y = -tzValue;
+      
+    }else if(contID == 9){
+      SmartDashboard.putString("Last Auto Action", "Encoders On Pickup");
+      double len = Math.sqrt(Math.pow(saveX, 2) + Math.pow(saveZ, 2));
+      double distToTarget = len - drivebase.getDistance();
+      if(distToTarget < 0.01 && distToTarget > -0.01){
+        contID = 0;
+        drivebase.resetDistance();
+        drivebase.setTurnOffset(0);
+        isAuto = false;
+      }else{
+          x = -saveX/len * distToTarget;
+          y = -saveZ/len * distToTarget;
+      }
+    }else if(closestId == 5){
+      SmartDashboard.putString("Last Auto Action", "AMP LiningUP");
+      turnToAng = 90;
+      drivebase.setTurnOffset(90);
+      txValue = txValue + 0.1;
+      saveZ = txValue;
+      saveX = tzValue;
+      contID = 5;
+      drivebase.resetDistance();
+      double len = Math.sqrt(Math.pow(txValue, 2) + Math.pow(tzValue, 2));
+      if (len > 1){
+        txValue = txValue/len;
+        tzValue = tzValue/len;
+      }
+      x = -txValue;
+      y = -tzValue;
+      
+    }else if(contID == 5){
+      SmartDashboard.putString("Last Auto Action", "Encoders On AMP");
+      double len = Math.sqrt(Math.pow(saveX, 2) + Math.pow(saveZ, 2));
+      double distToTarget = len - drivebase.getDistance();
+      if(distToTarget < 0.01 && distToTarget > -0.01){
+        contID = 0;
+        drivebase.resetDistance();
+        drivebase.setTurnOffset(0);
+        isAuto = false;
+      }else{
+          x = -saveX/len * distToTarget;
+          y = -saveZ/len * distToTarget;
+      }
+    }else{
+      isAuto = false;
+      drivebase.setTurnOffset(0);
+    }
+  }
 
 
 
 
   private void handleBlueTeamLogic() {
     if(contID == 7){
-          if(!johnathan.shoot()){
-            SmartDashboard.putNumber("PING", 4688);
-            isAuto = false;
-            drivebase.setTurnOffset(0);
-            contID = 0;
-          }
-        }
-        else if(closestId == 7){
-          double dist = Math.sqrt(Math.pow(txValue, 2) + Math.pow(tzValue, 2));
-          double angle = Math.toDegrees(Math.atan2(tzValue, txValue))-90;
-          if (angle < 0) angle += 360;
-          if (txValue > 1) txValue = 1;
-          if (txValue < -1) txValue = -1;
-          if (tzValue > 1) tzValue = 1;
-          if (tzValue < -1) tzValue = -1;
-          turnToAng = (int) angle;
-          SmartDashboard.putNumber("dist", dist);
-          SmartDashboard.putNumber("angle", angle);
-          drivebase.setTurnOffset(180);
-          if (dist > 2.25){
-            x = -txValue;
-            y = -tzValue;
-          }else if(dist < 1.2){
-            x = txValue;
-            y = tzValue;
-          }else{
-            turnToAng = (int) (angle + 26.5) % 360;
-            contID = 7;
-          }
-        }
-
-        else if(closestId == 8){
-          double angle = Math.toDegrees(Math.atan2(tzValue, txValue + 0.616)) - 180;
-          if (angle < 0) angle += 360;
-          turnToAng = (int) angle % 360;
-        }
-
-        if(closestId == 1 || closestId == 2){
-          if (johnathan.getActiveShooter()){
-            txValue = txValue - 0.1;
-          }else{
-            txValue = txValue + 0.1;
-          }
-          
-          if ((Math.abs(txValue) < 0.02 && Math.abs(tzValue) < 0.02) || tzValue > 200){
-            contID = 1;
-            drivebase.resetDistance();
-          }else{
-            turnToAng = 60;
-            drivebase.setTurnOffset(60);
-            if (txValue > 1) txValue = 1;
-            if (txValue < -1) txValue = -1;
-            if (tzValue > 1) tzValue = 1;
-            if (tzValue < -1) tzValue = -1;
-            x = -txValue;
-            y = -tzValue;
-            saveZ = txValue;
-            saveX = tzValue;
-          }
-        }
-        else if(contID == 1){
-          double distToTarget = Math.sqrt(Math.pow(saveX, 2) + Math.pow(saveZ, 2)) - drivebase.getDistance();
-          if(distToTarget < 0.01 && distToTarget > -0.01){
-            contID = 0;
-            drivebase.resetDistance();
-          }else{
-            double regy = saveZ /(Math.abs(saveX) + Math.abs(saveZ));
-            double regx = saveX / (Math.abs(saveX) + Math.abs(saveZ));
-            y = -regy * distToTarget;
-            x = -regx * distToTarget;
-          }
-        }else if(closestId == 6){
-          txValue = txValue + 0.1;
-          if ((Math.abs(txValue) < 0.02 && Math.abs(tzValue) < 0.02) || tzValue > 200){
-            contID = 6;
-            drivebase.resetDistance();
-          }else{
-            turnToAng = 270;
-            drivebase.setTurnOffset(270);
-            if (txValue > 1) txValue = 1;
-            if (txValue < -1) txValue = -1;
-            if (tzValue > 1) tzValue = 1;
-            if (tzValue < -1) tzValue = -1;
-            x = -txValue;
-            y = -tzValue;
-            saveZ = txValue;
-            saveX = tzValue;
-          }
-        }
-        else if(contID == 6){
-          double distToTarget = Math.sqrt(Math.pow(saveX, 2) + Math.pow(saveZ, 2)) - drivebase.getDistance();
-          if(distToTarget < 0.01 && distToTarget > -0.01){
-            contID = 0;
-            drivebase.resetDistance();
-          }else{
-            double regy = saveZ /(Math.abs(saveX) + Math.abs(saveZ));
-            double regx = saveX / (Math.abs(saveX) + Math.abs(saveZ));
-            y = -regy * distToTarget;
-            x = -regx * distToTarget;
-          }
-        }else{
-          //isAuto = false;
-          drivebase.setTurnOffset(0);
-        }
+      SmartDashboard.putString("Last Auto Action", "FIRING");
+      isShooting = true;
+      isAuto = false;
+      drivebase.setTurnOffset(0);
+      contID = 0;
+    }else if(closestId == 7){
+      SmartDashboard.putString("Last Auto Action", "LINING UP TO SHOOT");
+      double dist = Math.sqrt(Math.pow(txValue, 2) + Math.pow(tzValue, 2));
+      double angle = Math.toDegrees(Math.atan2(tzValue, txValue)) + 90;
+      if (angle < 0) angle += 360;
+      if (txValue > 1) txValue = 1;
+      if (txValue < -1) txValue = -1;
+      if (tzValue > 1) tzValue = 1;
+      if (tzValue < -1) tzValue = -1;
+      drivebase.setTurnOffset(180);
+      turnToAng = (int) angle;
+      if (dist > 2.25){
+        x = -txValue;
+        y = -tzValue;
+      }else if(dist < 1.2){
+        x = txValue;
+        y = tzValue;
+      }else{
+        turnToAng = (int) (angle + 26.5) % 360;
+        contID = 7;
+      }
+    }else if(closestId == 8){
+      SmartDashboard.putString("Last Auto Action", "Adjusting To Shooting Tag");
+      double angle = Math.toDegrees(Math.atan2(tzValue, txValue - 0.616)) + 90;
+      if (angle < 0) angle += 360;
+      turnToAng = (int) angle % 360;
+    }else if(closestId == 1 || closestId == 2){
+      SmartDashboard.putString("Last Auto Action", "Picking Up");
+      turnToAng = 60;
+      drivebase.setTurnOffset(60);
+      if (johnathan.getActiveShooter()){
+        txValue = txValue - 0.1;
+      }else{
+        txValue = txValue + 0.1;
+      }
+      saveZ = txValue;
+      saveX = tzValue;
+      contID = 1;
+      drivebase.resetDistance();
+      double len = Math.sqrt(Math.pow(txValue, 2) + Math.pow(tzValue, 2));
+      if (len > 1){
+        txValue = txValue/len;
+        tzValue = tzValue/len;
+      }
+      x = -txValue;
+      y = -tzValue;
+      
+    }else if(contID == 1){
+      SmartDashboard.putString("Last Auto Action", "Encoders On Pickup");
+      double len = Math.sqrt(Math.pow(saveX, 2) + Math.pow(saveZ, 2));
+      double distToTarget = len - drivebase.getDistance();
+      if(distToTarget < 0.01 && distToTarget > -0.01){
+        contID = 0;
+        drivebase.resetDistance();
+        drivebase.setTurnOffset(0);
+        isAuto = false;
+      }else{
+          x = -saveX/len * distToTarget;
+          y = -saveZ/len * distToTarget;
+      }
+    }else if(closestId == 6){
+      SmartDashboard.putString("Last Auto Action", "AMP LiningUP");
+      turnToAng = 270;
+      drivebase.setTurnOffset(270);
+      txValue = txValue + 0.1;
+      saveZ = txValue;
+      saveX = tzValue;
+      contID = 6;
+      drivebase.resetDistance();
+      double len = Math.sqrt(Math.pow(txValue, 2) + Math.pow(tzValue, 2));
+      if (len > 1){
+        txValue = txValue/len;
+        tzValue = tzValue/len;
+      }
+      x = -txValue;
+      y = -tzValue;
+      
+    }else if(contID == 6){
+      SmartDashboard.putString("Last Auto Action", "Encoders On AMP");
+      double len = Math.sqrt(Math.pow(saveX, 2) + Math.pow(saveZ, 2));
+      double distToTarget = len - drivebase.getDistance();
+      if(distToTarget < 0.01 && distToTarget > -0.01){
+        contID = 0;
+        drivebase.resetDistance();
+        drivebase.setTurnOffset(0);
+        isAuto = false;
+      }else{
+          x = -saveX/len * distToTarget;
+          y = -saveZ/len * distToTarget;
+      }
+    }else{
+      isAuto = false;
+      drivebase.setTurnOffset(0);
+    }
   }
 }
