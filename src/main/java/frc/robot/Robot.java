@@ -4,12 +4,16 @@
 
 package frc.robot;
 
+import java.util.Optional;
+
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.motorcontrol.Spark;
@@ -17,29 +21,30 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Robot extends TimedRobot {
 
-  SwervBase drivebase = new SwervBase();
-  Joystick xBox = new Joystick(0);
-  Shooter johnathan = new Shooter(14,15,16);
-  DigitalInput limitSwitch = new DigitalInput(0);
-  VictorSPX climber = new VictorSPX(13);
-  Spark lights = new Spark(0);
+  // Hardware components
+  private SwervBase drivebase = new SwervBase(); // Controls the robot's movement
+  private Joystick xBox = new Joystick(0); // Input device for controlling the robot
+  private Shooter johnathan = new Shooter(14, 15, 16); // The robot's shooting mechanism
+  private DigitalInput limitSwitch = new DigitalInput(0); // A limit switch for detecting physical contact
+  private VictorSPX climber = new VictorSPX(13); // Motor controller for the climbing mechanism
+  private Spark lights = new Spark(0); // Controller for lights
 
-  private int lastPOV = -1;
-  private int turnToAng = -1;
+  // State variables
+  private boolean isAuto = false; // Tracks whether the robot is in autonomous mode
+  private boolean isShooting = false; // Tracks whether the robot is currently shooting
+  private boolean isRed = true; // Tracks whether the robot is on the Red alliance
+  private int contID = 0; // A control identifier for managing state in autonomous or teleop modes
+  private int lastPOV = -1; // Tracks the last POV value (direction of the D-pad) from the joystick
+  private int turnToAng = -1; // Desired angle to turn to during operations
 
-  private boolean isAuto = false;
-  public boolean isShooting = false;
+  // Positional and movement variables
+  private double saveZ = 0; // Temporary storage for Z-axis value
+  private double saveX = 0; // Temporary storage for X-axis value
+  private double x = 0; // General purpose variable for X-axis manipulation
+  private double y = 0; // General purpose variable for Y-axis manipulation
+  private double z = 0; // General purpose variable for Z-axis manipulation
+  private double m = 0; // A variable for another measurement or magnitude (the purpose is unclear without context)
 
-  public boolean isRed = true;
-  double saveZ = 0;
-  double saveX = 0;
-  int contID = 0;
-
-
-  double x;
-  double y;
-  double z;
-  double m;
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -59,9 +64,8 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopInit() {
-    NetworkTable tableFMS = NetworkTableInstance.getDefault().getTable("FMSInfo");
-    NetworkTableEntry isRedEntry = tableFMS.getEntry("IsRedAlliance");
-    isRed = isRedEntry.getBoolean(true);
+    Optional<Alliance> ally = DriverStation.getAlliance();
+    isRed = (ally.get() == Alliance.Red)
     drivebase.reset();
     lights.set(-0.75);
   }
