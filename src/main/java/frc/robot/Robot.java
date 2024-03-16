@@ -107,6 +107,11 @@ public class Robot extends TimedRobot {
     }
     lastPOV = currentPOV;
 
+    if (xBox.getRawButtonPressed(1)){
+      isAuto = !isAuto;
+      drivebase.setTurnOffset(0);
+    }
+
     if (isAuto) {
       handleAutoMode();
     } else {
@@ -116,12 +121,6 @@ public class Robot extends TimedRobot {
 
     if (turnToAng != -1) {
         adjustTurnAngle(curAng);
-    }
-
-
-    if (xBox.getRawButtonPressed(1)){
-      isAuto = !isAuto;
-      drivebase.setTurnOffset(0);
     }
 
     if (xBox.getRawButtonPressed(7)){
