@@ -298,14 +298,14 @@ public class Robot extends TimedRobot {
       double dist = Math.sqrt(Math.pow(txValue, 2) + Math.pow(tzValue, 2));
       double angle = Math.toDegrees(Math.atan2(tzValue, txValue)) + 90;
       if (angle < 0) angle += 360;
-      if (txValue > 1) txValue = 1;
-      if (txValue < -1) txValue = -1;
-      if (tzValue > 1) tzValue = 1;
-      if (tzValue < -1) tzValue = -1;
+      if (dist > 1){
+        txValue = txValue/dist;
+        tzValue = tzValue/dist;
+      }
       drivebase.setTurnOffset(180);
       turnToAng = (int) angle;
       if (dist > 2.25){
-        x = -txValue;
+        x = txValue;
         y = -tzValue;
       }else if(dist < 1.2){
         x = txValue;
@@ -337,7 +337,7 @@ public class Robot extends TimedRobot {
         txValue = txValue/len;
         tzValue = tzValue/len;
       }
-      x = -txValue;
+      x = txValue;
       y = -tzValue;
       
     }else if(contID == 9){
@@ -350,7 +350,7 @@ public class Robot extends TimedRobot {
         drivebase.setTurnOffset(0);
         isAuto = false;
       }else{
-          x = -saveX/len * distToTarget;
+          x = saveX/len * distToTarget;
           y = -saveZ/len * distToTarget;
       }
     }else if(closestId == 5){
@@ -367,7 +367,7 @@ public class Robot extends TimedRobot {
         txValue = txValue/len;
         tzValue = tzValue/len;
       }
-      x = -txValue;
+      x = txValue;
       y = -tzValue;
       
     }else if(contID == 5){
@@ -380,7 +380,7 @@ public class Robot extends TimedRobot {
         drivebase.setTurnOffset(0);
         isAuto = false;
       }else{
-          x = -saveX/len * distToTarget;
+          x = saveX/len * distToTarget;
           y = -saveZ/len * distToTarget;
       }
     }else{
@@ -404,14 +404,14 @@ public class Robot extends TimedRobot {
       double dist = Math.sqrt(Math.pow(txValue, 2) + Math.pow(tzValue, 2));
       double angle = Math.toDegrees(Math.atan2(tzValue, txValue)) + 90;
       if (angle < 0) angle += 360;
-      if (txValue > 1) txValue = 1;
-      if (txValue < -1) txValue = -1;
-      if (tzValue > 1) tzValue = 1;
-      if (tzValue < -1) tzValue = -1;
+      if (dist > 1){
+        txValue = txValue/dist;
+        tzValue = tzValue/dist;
+      }
       drivebase.setTurnOffset(180);
       turnToAng = (int) angle;
       if (dist > 2.25){
-        x = -txValue;
+        x = txValue;
         y = -tzValue;
       }else if(dist < 1.2){
         x = txValue;
@@ -443,7 +443,7 @@ public class Robot extends TimedRobot {
         txValue = txValue/len;
         tzValue = tzValue/len;
       }
-      x = -txValue;
+      x = txValue;
       y = -tzValue;
       
     }else if(contID == 1){
@@ -456,7 +456,7 @@ public class Robot extends TimedRobot {
         drivebase.setTurnOffset(0);
         isAuto = false;
       }else{
-          x = -saveX/len * distToTarget;
+          x = saveX/len * distToTarget;
           y = -saveZ/len * distToTarget;
       }
     }else if(closestId == 6){
@@ -473,7 +473,7 @@ public class Robot extends TimedRobot {
         txValue = txValue/len;
         tzValue = tzValue/len;
       }
-      x = -txValue;
+      x = txValue;
       y = -tzValue;
       
     }else if(contID == 6){
@@ -486,7 +486,7 @@ public class Robot extends TimedRobot {
         drivebase.setTurnOffset(0);
         isAuto = false;
       }else{
-          x = -saveX/len * distToTarget;
+          x = saveX/len * distToTarget;
           y = -saveZ/len * distToTarget;
       }
     }else{
