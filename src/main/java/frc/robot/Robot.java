@@ -44,12 +44,12 @@ public class Robot extends TimedRobot {
   private double y = 0; // General purpose variable for Y-axis manipulation
   private double z = 0; // General purpose variable for Z-axis manipulation
   private double m = 0; // A variable for another measurement or magnitude (the purpose is unclear without context)
+  
+  private double txValue = 0;
+  private double tzValue = 0;
+  private double curAng = 0;
+  private int closestId = 0;
 
-
-  /**
-   * This function is run when the robot is first started up and should be used for any
-   * initialization code.
-   */
   @Override
   public void robotInit() {}
 
@@ -65,21 +65,19 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopInit() {
     Optional<Alliance> ally = DriverStation.getAlliance();
-    isRed = (ally.get() == Alliance.Red)
+    isRed = (ally.get() == Alliance.Red);
     drivebase.reset();
     lights.set(-0.75);
   }
-
-  
 
   @Override
   public void teleopPeriodic() {
 
     NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
-    int closestId = (int) getClosest(table);
-    double txValue = getAprilTagValueX(table, (int)closestId);
-    double tzValue = getAprilTagValueZ(table, (int)closestId);
-    double curAng = drivebase.getNavX();
+    closestId = (int) getClosest(table);
+    txValue = getAprilTagValueX(table, closestId);
+    tzValue = getAprilTagValueZ(table, closestId);
+    curAng = drivebase.getNavX();
 
     SmartDashboard.putNumber("LimelightX", txValue);
     SmartDashboard.putNumber("LimelightZ", tzValue);
@@ -90,41 +88,207 @@ public class Robot extends TimedRobot {
     SmartDashboard.putBoolean("ALLIANCE", isRed);
 
     SmartDashboard.putBoolean("Climb Switch", limitSwitch.get());
+    johnathan.displayDiagnostics();
+    drivebase.getEncoders();
     
-    x = xBox.getRawAxis(0);
-    y = xBox.getRawAxis(1);
-    z = xBox.getRawAxis(4);
 
-    if (Math.abs(x) < 0.2){
-      x = 0;
-    }
 
-    if (Math.abs(y) < 0.2){
-      y = 0;
-    }
+    x = applyDeadzone(xBox.getRawAxis(0), 0.07);
+    y = applyDeadzone(xBox.getRawAxis(1), 0.07);
+    z = applyDeadzone(xBox.getRawAxis(4), 0.07);
 
-    if (Math.abs(z) < 0.2){
-      z = 0;
-    }else{
-      turnToAng = -1;
+    if (z != 0) {
+        turnToAng = -1;
     }
 
     int currentPOV = xBox.getPOV();
     if (lastPOV == -1 && currentPOV != -1) {
-      turnToAng = currentPOV;
+        turnToAng = currentPOV;
     }
     lastPOV = currentPOV;
+
+
+    if (turnToAng != -1) {
+        adjustTurnAngle(curAng);
+    }
 
 
     if (xBox.getRawButtonPressed(1)){
       isAuto = !isAuto;
       drivebase.setTurnOffset(0);
     }
-    SmartDashboard.putBoolean("IS AUTO", isAuto);
 
-    if(isAuto){
-      if(isRed){
-        if(contID == 4){
+    if (xBox.getRawButtonPressed(7)){
+      drivebase.reset();
+    }
+    if (xBox.getRawButtonPressed(8)){
+      drivebase.xToggle();
+    }
+
+    if (xBox.getRawButton(4)) {
+      johnathan.intake();
+    } else {
+      if (xBox.getRawButton(3)) {
+          if (johnathan.getActiveShooter()) {
+              isShooting = true;
+          } else {
+              johnathan.shoot();
+          }
+      }
+      if (isShooting) {
+          isShooting = johnathan.shoot();
+          if (!isShooting){
+            johnathan.stop();
+          }
+      }
+    }
+
+    if (xBox.getRawButtonPressed(2)){
+      isShooting = false;
+      johnathan.switchMode();
+    }
+
+    if (xBox.getRawButton(6) && limitSwitch.get()){
+        climber.set(ControlMode.PercentOutput,-1);
+      }else{
+      if (xBox.getRawButton(5)){
+        climber.set(ControlMode.PercentOutput,0.8);
+      }else{
+        climber.set(ControlMode.PercentOutput,0);
+      }
+    }
+
+    if (isAuto) {
+      handleAutoMode();
+    } else {
+      drivebase.setTurnOffset(0);
+    }
+
+    m = 1 - (xBox.getRawAxis(3) * 0.8);
+    drivebase.liveMove(y * m, x * m, z * m);
+  }
+
+  private double getAprilTagValueX(NetworkTable table, int id) {
+    NetworkTableEntry tid = table.getEntry("tid");
+    NetworkTableEntry tg = table.getEntry("camerapose_targetspace");
+    
+    //Reading values 
+    double val = tid.getDouble(0.0);
+    double[] cpose = tg.getDoubleArray(new double[]{4688, 4688, 4688, 4688, 4688, 4688, 4688});
+    if (val==id) {
+      SmartDashboard.putNumber("targetX",cpose[0]);
+      return cpose[0];
+      }
+      else {
+      SmartDashboard.putNumber("LimelightVal",val);
+      return (4688.2024);
+      }
+      
+  }
+
+  private double getAprilTagValueZ(NetworkTable table, int id) {
+    NetworkTableEntry tid = table.getEntry("tid");
+    NetworkTableEntry tg = table.getEntry("camerapose_targetspace");
+    
+    //Reading values 
+    double val = tid.getDouble(0.0);
+    double[] cpose = tg.getDoubleArray(new double[]{4688, 4688, 4688, 4688, 4688, 4688, 4688});
+    if (val==id) {
+      SmartDashboard.putNumber("targetX", Math.abs(cpose[2]));
+      return Math.abs(cpose[2]);
+      }
+      else {
+      SmartDashboard.putNumber("LimelightVal",val);
+      return (4688.2024);
+      }
+      
+  }
+
+  private double getClosest(NetworkTable table) {
+    NetworkTableEntry tid = table.getEntry("tid");
+    double id = tid.getDouble(0.0);
+    return id;
+  }
+
+  @Override
+  public void disabledInit() {}
+
+  @Override
+  public void disabledPeriodic() {}
+
+  @Override
+  public void testInit() {}
+
+  @Override
+  public void testPeriodic() {}
+
+  @Override
+  public void simulationInit() {}
+
+  @Override
+  public void simulationPeriodic() {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  private double applyDeadzone(double value, double threshold) {
+    return Math.abs(value) < threshold ? 0 : value;
+  }
+
+  private void adjustTurnAngle(double curAng) {
+    double angleDifference = Math.abs(curAng - turnToAng);
+    
+    if (angleDifference < 0.2) {
+        turnToAng = -1; // Reset turnToAng if close to target
+    } else {
+        calculateTurnDirection(curAng);
+    }
+  }
+
+  private void calculateTurnDirection(double curAng) {
+    double clockwiseDistance = (turnToAng - curAng + 360) % 360;
+    double counterClockwiseDistance = (curAng - turnToAng + 360) % 360;
+
+    if (clockwiseDistance < counterClockwiseDistance) {
+        z = Math.max(clockwiseDistance / 180, 0.03);
+    } else {
+        z = -Math.max(counterClockwiseDistance / 180, 0.03);
+    }
+  }
+
+  private void handleAutoMode() {
+    if (isRed) {
+        handleRedTeamLogic();
+    } else {
+        handleBlueTeamLogic();
+    }
+  }
+
+  private void handleRedTeamLogic() {
+    if(contID == 4){
           if(!johnathan.shoot()){
             isAuto = false;
             drivebase.setTurnOffset(0);
@@ -226,8 +390,13 @@ public class Robot extends TimedRobot {
           isAuto = false;
           drivebase.setTurnOffset(0);
         }
-      }else{
-        if(contID == 7){
+      }
+
+
+
+
+  private void handleBlueTeamLogic() {
+    if(contID == 7){
           if(!johnathan.shoot()){
             SmartDashboard.putNumber("PING", 4688);
             isAuto = false;
@@ -332,134 +501,5 @@ public class Robot extends TimedRobot {
           //isAuto = false;
           drivebase.setTurnOffset(0);
         }
-      }
-    }
-        
-
-    if (turnToAng != -1){
-      if (Math.abs(curAng - turnToAng) < 0.2){
-        turnToAng = -1;
-      }else{
-        double clockwise = (turnToAng - curAng + 360) % 360;
-        double counterCwise = (curAng - turnToAng + 360) % 360;
-        if (clockwise > counterCwise){
-          z = - Math.max(counterCwise / 180, 0.03);
-        }else{
-          z = Math.max(clockwise / 180, 0.03);
-        }
-      }
-    }
-
-    if (xBox.getRawButtonPressed(7)){
-      drivebase.reset();
-    }
-    if (xBox.getRawButtonPressed(8)){
-      drivebase.xToggle();
-    }
-
-    if (xBox.getRawButton(4)){
-      johnathan.intake();
-    }else{
-      if (johnathan.getActiveShooter()){
-        if (xBox.getRawButton(3)){
-          isShooting = true;
-        }
-        if(isShooting){
-          isShooting = johnathan.shoot();
-        }else{
-          johnathan.stop();
-        }
-    }else{
-      if (xBox.getRawButton(3)){
-        johnathan.shoot();
-      }else{
-        johnathan.stop();
-      }
-    }
-      
-    }
-
-    if (xBox.getRawButtonPressed(2)){
-      isShooting = false;
-      johnathan.switchMode();
-    }
-
-      if (xBox.getRawButton(6) && limitSwitch.get()){
-        climber.set(ControlMode.PercentOutput,-1);
-      }else{
-      if (xBox.getRawButton(5)){
-        climber.set(ControlMode.PercentOutput,0.8);
-      }else{
-        climber.set(ControlMode.PercentOutput,0);
-      }
-    }
-
-    johnathan.displayDiagnostics();
-    m = 1 - (xBox.getRawAxis(3) * 0.8);
-    drivebase.liveMove(y * m, x * m, z * m);
-    drivebase.getEncoders();
-
   }
-
-  private double getAprilTagValueX(NetworkTable table, int id) {
-    NetworkTableEntry tid = table.getEntry("tid");
-    NetworkTableEntry tg = table.getEntry("camerapose_targetspace");
-    
-    //Reading values 
-    double val = tid.getDouble(0.0);
-    double[] cpose = tg.getDoubleArray(new double[]{4688, 4688, 4688, 4688, 4688, 4688, 4688});
-    if (val==id) {
-      SmartDashboard.putNumber("targetX",cpose[0]);
-      return cpose[0];
-      }
-      else {
-      SmartDashboard.putNumber("LimelightVal",val);
-      return (4688.2024);
-      }
-      
-  }
-
-  private double getAprilTagValueZ(NetworkTable table, int id) {
-    NetworkTableEntry tid = table.getEntry("tid");
-    NetworkTableEntry tg = table.getEntry("camerapose_targetspace");
-    
-    //Reading values 
-    double val = tid.getDouble(0.0);
-    double[] cpose = tg.getDoubleArray(new double[]{4688, 4688, 4688, 4688, 4688, 4688, 4688});
-    if (val==id) {
-      SmartDashboard.putNumber("targetX", Math.abs(cpose[2]));
-      return Math.abs(cpose[2]);
-      }
-      else {
-      SmartDashboard.putNumber("LimelightVal",val);
-      return (4688.2024);
-      }
-      
-  }
-
-  private double getClosest(NetworkTable table) {
-    NetworkTableEntry tid = table.getEntry("tid");
-    double id = tid.getDouble(0.0);
-    return id;
-  }
-
-  @Override
-  public void disabledInit() {}
-
-  @Override
-  public void disabledPeriodic() {}
-
-  @Override
-  public void testInit() {}
-
-  @Override
-  public void testPeriodic() {}
-
-  @Override
-  public void simulationInit() {}
-
-  @Override
-  public void simulationPeriodic() {}
-
-
 }
