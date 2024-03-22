@@ -4,7 +4,8 @@ import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
- * Represents the base of a swerve drive system, incorporating four swerve corners and a NavX for orientation.
+ * Represents the base of a swerve drive system, incorporating four swerve
+ * corners and a NavX for orientation.
  */
 public class SwervBase {
 
@@ -24,19 +25,19 @@ public class SwervBase {
     private double angleBL = 0;
     private double angleBR = 0;
     private boolean xMode = false;
-    private double turnOffset = 0;
 
     // NavX (ROBOT GPS)
     private final AHRS NavX;
 
     /**
-     * Initializes the SwerveBase with predefined corner configurations and a NavX sensor.
+     * Initializes the SwerveBase with predefined corner configurations and a NavX
+     * sensor.
      */
     public SwervBase() {
         // Initialize Swerve Corners with IDs and rotation offsets
         CornerFR = new SwervCorner(1, 2, 3, ROTATE_OFFSET_FR);
         CornerFL = new SwervCorner(4, 5, 6, ROTATE_OFFSET_FL);
-        CornerBR = new SwervCorner(10,11, 12, ROTATE_OFFSET_BR);
+        CornerBR = new SwervCorner(10, 11, 12, ROTATE_OFFSET_BR);
         CornerBL = new SwervCorner(7, 8, 9, ROTATE_OFFSET_BL);
 
         // Initialize NavX
@@ -46,7 +47,7 @@ public class SwervBase {
     /**
      * Resets the NavX orientation and RPM of each swerve corner.
      */
-    public void reset() {
+    public void resetNavx() {
         NavX.reset();
     }
 
@@ -57,11 +58,11 @@ public class SwervBase {
         CornerBR.resetDrive();
     }
 
-    public double getNavX(){
+    public double getNavX() {
         return (NavX.getYaw() + 360) % 360;
     }
 
-    public void xToggle(){
+    public void xToggle() {
         xMode = !xMode;
     }
 
@@ -80,77 +81,97 @@ public class SwervBase {
         SmartDashboard.putNumber("BR DISTANCE", CornerBR.getDistance());
     }
 
-    public double getDistance(){
-        return Math.min(Math.min(CornerFL.getDistance(),CornerFR.getDistance()) , Math.min(CornerBL.getDistance(),CornerBR.getDistance()));
-    }
-
-    public void setTurnOffset(double a){
-        turnOffset = a;
+    public double getDistance() {
+        return Math.min(Math.min(CornerFL.getDistance(), CornerFR.getDistance()),
+                Math.min(CornerBL.getDistance(), CornerBR.getDistance()));
     }
 
     /**
-     * Drives the swerve base using input x, y, and z values for movement and rotation.
+     * Drives the swerve base using input x, y, and z values for movement and
+     * rotation.
+     * 
      * @param x The x-component of the movement vector.
      * @param y The y-component of the movement vector.
      * @param z The z-component (rotation) of the movement vector.
      */
-    public void liveMove(double x, double y, double z) {
+    public void fieldCentric(double x, double y, double z) {
 
-        
-        // Calculate Turn based on NavX
-        double roboturn = (NavX.getYaw() - turnOffset + 360) % 360;
-        SmartDashboard.putNumber("NavX", roboturn);
-        double angle = Math.toDegrees(Math.atan2(y, x));
-        if (angle < 0) angle += 360; 
-        angle = Math.toRadians((angle + roboturn) % 360);
-        double mag = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
-        x = mag * Math.cos(angle);
-        y = mag * Math.sin(angle);
-        
-        
+        // Obtain the current orientation of the robot from the NavX sensor and
+        // normalize it to [0, 360)
+        double robotOrientation = (NavX.getYaw() + 360) % 360;
+
+        // Log the orientation for debugging purposes
+        SmartDashboard.putNumber("NavX", robotOrientation);
+
+        // Convert the target direction (given by x, y) into polar coordinates
+        // (magnitude and angle)
+        double mag = calculateMagnitude(x, y); // More efficient than sqrt(pow(x, 2) + pow(y, 2))
+        double targetAngle = Math.toDegrees(Math.atan2(y, x));
+
+        // Adjust the target angle based on the robot's current orientation
+        targetAngle += robotOrientation;
+        double adjustedAngleRad = Math.toRadians(targetAngle);
+
+        // Convert the adjusted polar coordinates back to Cartesian coordinates
+        x = mag * Math.cos(adjustedAngleRad);
+        y = mag * Math.sin(adjustedAngleRad);
+
+        x = Math.round(x * 100.0) / 100.0;
+        y = Math.round(y * 100.0) / 100.0;
+
+        robotCentric(x, y, z);
+
+    }
+
+    public void robotCentric(double x, double y, double z) {
         // Normalize magnitudes and calculate angles directly within the method
         double frx = x + z;
         double fry = y + z;
-        double frmag = Math.sqrt(Math.pow(frx, 2) + Math.pow(fry, 2));
         double flx = x - z;
         double fly = y + z;
-        double flmag = Math.sqrt(Math.pow(flx, 2) + Math.pow(fly, 2));
         double blx = x - z;
         double bly = y - z;
-        double blmag = Math.sqrt(Math.pow(blx, 2) + Math.pow(bly, 2));
         double brx = x + z;
         double bry = y - z;
-        double brmag = Math.sqrt(Math.pow(brx, 2) + Math.pow(bry, 2));
-    
+
+        double frmag = calculateMagnitude(frx, fry);
+        double flmag = calculateMagnitude(flx, fly);
+        double blmag = calculateMagnitude(blx, bly);
+        double brmag = calculateMagnitude(brx, bry);
+
         // Calculate angles
-        if (flmag != 0){
-            angleFL = Math.toDegrees(Math.atan2(fly, flx));
-            if (angleFL < 0) angleFL += 360;
+        if (flmag != 0) {
+            angleFL = Math.toDegrees(Math.atan2(flx, fly));
+            if (angleFL < 0)
+                angleFL += 360;
         }
-        if (frmag != 0){
-            angleFR = Math.toDegrees(Math.atan2(fry, frx));
-            if (angleFR < 0) angleFR += 360;
+        if (frmag != 0) {
+            angleFR = Math.toDegrees(Math.atan2(frx, fry));
+            if (angleFR < 0)
+                angleFR += 360;
         }
-        if (blmag != 0){
-            angleBL = Math.toDegrees(Math.atan2(bly, blx));
-            if (angleBL < 0) angleBL += 360;
+        if (blmag != 0) {
+            angleBL = Math.toDegrees(Math.atan2(blx, bly));
+            if (angleBL < 0)
+                angleBL += 360;
         }
-        if (brmag != 0){
-            angleBR = Math.toDegrees(Math.atan2(bry, brx));
-            if (angleBR < 0) angleBR += 360;
+        if (brmag != 0) {
+            angleBR = Math.toDegrees(Math.atan2(brx, bry));
+            if (angleBR < 0)
+                angleBR += 360;
         }
 
-        //Checking if we need to turn first without moving (Stops browning out)
-        double flDist = calcDist(CornerFL.getWheelAngle(),angleFL);
-        double frDist = calcDist(CornerFR.getWheelAngle(),angleFR);
-        double brDist = calcDist(CornerBR.getWheelAngle(),angleBR);
-        double blDist = calcDist(CornerBL.getWheelAngle(),angleBL);
-        if((flDist + frDist + brDist + blDist)/4 > 45){
+        // Checking if we need to turn first without moving (Stops browning out)
+        double flDist = calcDist(CornerFL.getWheelAngle(), angleFL);
+        double frDist = calcDist(CornerFR.getWheelAngle(), angleFR);
+        double brDist = calcDist(CornerBR.getWheelAngle(), angleBR);
+        double blDist = calcDist(CornerBL.getWheelAngle(), angleBL);
+        if ((flDist + frDist + brDist + blDist) / 4 > 45) {
             flmag = 0;
             frmag = 0;
             blmag = 0;
             brmag = 0;
-        }else{
+        } else {
 
             // Normalize magnitudes
             double bigMag = Math.max(Math.max(flmag, frmag), Math.max(blmag, brmag));
@@ -162,12 +183,12 @@ public class SwervBase {
             }
         }
 
-        if (x == 0 && y == 0 && z == 0 && xMode){
+        if (x == 0 && y == 0 && z == 0 && xMode) {
             CornerFL.liveDrive(45, flmag);
             CornerFR.liveDrive(315, frmag);
             CornerBL.liveDrive(135, blmag);
             CornerBR.liveDrive(225, brmag);
-        }else{
+        } else {
             // Drive each corner with the calculated angles and magnitudes
             CornerFL.liveDrive(angleFL, flmag);
             CornerFR.liveDrive(angleFR, frmag);
@@ -176,14 +197,18 @@ public class SwervBase {
         }
     }
 
-    public double calcDist(double starting, double ending){
+    public double calcDist(double starting, double ending) {
         double clockwise = (ending - starting + 360) % 360;
         double counterCwise = (starting - ending + 360) % 360;
         if (clockwise <= counterCwise) {
             return clockwise;
-        } else {           
+        } else {
             return counterCwise;
         }
     }
-    
+
+    private double calculateMagnitude(double x, double y) {
+        return Math.sqrt(x * x + y * y);
+    }
+
 }
