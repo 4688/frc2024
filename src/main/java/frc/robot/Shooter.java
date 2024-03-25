@@ -15,6 +15,7 @@ public class Shooter {
     private boolean startTimer = true;
     private boolean isShooterActive = true;
     private int fireRPM = SHOOT_START_RPM;
+    private boolean waiting = true;
 
     private CANSparkMax flywheelMotor;
     private CANSparkMax shootMotor;
@@ -53,7 +54,7 @@ public class Shooter {
                 handMotor.set(0);
                 return false;
             } else {
-                handMotor.set(0.5);
+                handMotor.set(1);
                 return true;
             }
         }
@@ -63,17 +64,26 @@ public class Shooter {
         if (isShooterActive) {
             double rpm = flywheelEncoder.getVelocity();
 
-            if (rpm >= fireRPM) {
+            if(waiting){
+                startTimer();
+            }
+
+            if(timer.get() > 1.5 && waiting){
+                waiting = false;
+                stopTimer();
+            }
+            if (!waiting) {
                 shootMotor.set(1);
                 if (shootSensor.getVoltage() < 4) {
                     startTimer();
                 }
             }
             
-            if (timer.get() > 1.0) {
+            if (timer.get() > 1.5 && !waiting) {
                 shootMotor.set(0);
                 flywheelMotor.set(0);
                 stopTimer();
+                waiting = true;
                 return false;
             }else{
                 flywheelMotor.set(1);

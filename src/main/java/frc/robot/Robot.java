@@ -49,6 +49,8 @@ public class Robot extends TimedRobot {
   private double tzValue = 0;
   private double curAng = 0;
   private int closestId = 0;
+  private boolean isAutoShooting = false;
+  private int step = 1;
 
   @Override
   public void robotInit() {}
@@ -57,17 +59,67 @@ public class Robot extends TimedRobot {
   public void robotPeriodic() {}
 
   @Override
-  public void autonomousInit() {}
-
-  @Override
-  public void autonomousPeriodic() {}
-
-  @Override
-  public void teleopInit() {
+  public void autonomousInit() {
+    isAuto = true;
+    drivebase.reset();
+    drivebase.resetDistance();
     Optional<Alliance> ally = DriverStation.getAlliance();
     isRed = (ally.get() == Alliance.Red);
-    drivebase.reset();
+  }
+
+  @Override
+  public void autonomousPeriodic() {
+    curAng = drivebase.getNavX();
+    SmartDashboard.putNumber("Auto Step", step);
+    if(step == 1){
+      if(1.1 - drivebase.getDistance() > 0){
+        drivebase.liveMove(-0.3, 0, 0);
+      }else{
+        drivebase.liveMove(0, 0, 0);
+        drivebase.resetDistance();
+        step = 2;
+        turnToAng = 190;
+      }
+    }else if(step == 2){
+      x = 0;
+      y = 0;
+      z = 0;
+      adjustTurnAngle(curAng);
+      if (turnToAng < 0) {
+          drivebase.liveMove(0, 0, 0);
+          drivebase.resetDistance();
+          step = 3;
+        }
+      drivebase.liveMove(x, y, z);
+    }else if(step == 3){
+      if(0.9 - drivebase.getDistance() > 0){
+        drivebase.liveMove(0.34, 0, 0);
+      }else{
+        drivebase.liveMove(0, 0, 0);
+        drivebase.resetDistance();
+        step = 4;
+        isShooting = true;
+      }
+    }else if (step == 4){
+      if (isShooting) {
+          isShooting = johnathan.shoot();
+          lights.set(0.39);
+          if (!isShooting){
+            johnathan.stop();
+            step = 5;
+          }
+      }
+    }
+
+  }
+    
+  @Override
+  public void teleopInit() {
+    drivebase.resetDistance();
+    Optional<Alliance> ally = DriverStation.getAlliance();
+    isRed = (ally.get() == Alliance.Red);
     lights.set(-0.75);
+    drivebase.setTurnOffset(0);
   }
 
   @Override
@@ -103,6 +155,12 @@ public class Robot extends TimedRobot {
 
     int currentPOV = xBox.getPOV();
     if (lastPOV == -1 && currentPOV != -1) {
+      if (currentPOV == 45){
+        currentPOV = 60;
+      }
+      if (currentPOV == 315){
+        currentPOV = 300;
+      }
         turnToAng = currentPOV;
     }
     lastPOV = currentPOV;
@@ -130,6 +188,10 @@ public class Robot extends TimedRobot {
       drivebase.xToggle();
     }
 
+    if (!isShooting){
+        johnathan.stop();
+      }
+
     if (xBox.getRawButton(4)) {
       johnathan.intake();
     } else {
@@ -156,7 +218,7 @@ public class Robot extends TimedRobot {
     if (xBox.getRawButton(6) && limitSwitch.get()){
         climber.set(ControlMode.PercentOutput,-1);
       }else{
-      if (xBox.getRawButton(5)){
+      if (xBox.getRawButton(5) && xBox.getRawButton(8)){
         climber.set(ControlMode.PercentOutput,0.8);
       }else{
         climber.set(ControlMode.PercentOutput,0);
@@ -164,7 +226,18 @@ public class Robot extends TimedRobot {
     }
 
     m = 1 - (xBox.getRawAxis(3) * 0.8);
-    drivebase.liveMove(y * m, x * m, z * m);
+    if(xBox.getRawAxis(2) > 0.2){
+      drivebase.setTurnOffset(drivebase.getNavX());
+    }else if(!isAuto){
+      drivebase.setTurnOffset(0);
+    }
+
+    if(!isAuto && (Math.abs(z) > 0.2) && (!johnathan.getActiveShooter())){
+      johnathan.intake();
+    }
+
+
+    drivebase.liveMove(y * m, x * m, z *m);
   }
 
   private double getAprilTagValueX(NetworkTable table, int id) {
@@ -262,6 +335,10 @@ public class Robot extends TimedRobot {
     
     if (angleDifference < 0.2) {
         turnToAng = -1; // Reset turnToAng if close to target
+        if (isAutoShooting){
+          isShooting = true;
+          isAutoShooting = false;
+        }
     } else {
         calculateTurnDirection(curAng);
     }
@@ -289,7 +366,7 @@ public class Robot extends TimedRobot {
   private void handleRedTeamLogic() {
     if(contID == 4){
       SmartDashboard.putString("Last Auto Action", "FIRING");
-      isShooting = true;
+      isAutoShooting = true;
       isAuto = false;
       drivebase.setTurnOffset(0);
       contID = 0;
@@ -304,10 +381,10 @@ public class Robot extends TimedRobot {
       }
       drivebase.setTurnOffset(180);
       turnToAng = (int) angle;
-      if (dist > 2.25){
+      if (dist > 1.7){
         x = txValue;
         y = -tzValue;
-      }else if(dist < 1.2){
+      }else if(dist < 1.5){
         x = txValue;
         y = tzValue;
       }else{
@@ -357,7 +434,7 @@ public class Robot extends TimedRobot {
       SmartDashboard.putString("Last Auto Action", "AMP LiningUP");
       turnToAng = 90;
       drivebase.setTurnOffset(90);
-      txValue = txValue + 0.1;
+      txValue = txValue - 0.1;
       saveZ = txValue;
       saveX = tzValue;
       contID = 5;
@@ -386,6 +463,7 @@ public class Robot extends TimedRobot {
     }else{
       isAuto = false;
       drivebase.setTurnOffset(0);
+      SmartDashboard.putString("Last Auto Action", "DUMPED");
     }
   }
 
@@ -395,7 +473,7 @@ public class Robot extends TimedRobot {
   private void handleBlueTeamLogic() {
     if(contID == 7){
       SmartDashboard.putString("Last Auto Action", "FIRING");
-      isShooting = true;
+      isAutoShooting = true;
       isAuto = false;
       drivebase.setTurnOffset(0);
       contID = 0;
@@ -410,10 +488,10 @@ public class Robot extends TimedRobot {
       }
       drivebase.setTurnOffset(180);
       turnToAng = (int) angle;
-      if (dist > 2.25){
+      if (dist > 1.7){
         x = txValue;
         y = -tzValue;
-      }else if(dist < 1.2){
+      }else if(dist < 1.5){
         x = txValue;
         y = tzValue;
       }else{
@@ -463,7 +541,7 @@ public class Robot extends TimedRobot {
       SmartDashboard.putString("Last Auto Action", "AMP LiningUP");
       turnToAng = 270;
       drivebase.setTurnOffset(270);
-      txValue = txValue + 0.1;
+      txValue = txValue - 0.1;
       saveZ = txValue;
       saveX = tzValue;
       contID = 6;
@@ -492,6 +570,7 @@ public class Robot extends TimedRobot {
     }else{
       isAuto = false;
       drivebase.setTurnOffset(0);
+      SmartDashboard.putString("Last Auto Action", "DUMPED");
     }
   }
 }
