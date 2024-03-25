@@ -32,6 +32,17 @@ public class Robot extends TimedRobot {
   double saveX = 0;
   double contID = 0;
 
+  /*DA AUTO MASTER PLAN (TOP SECRET NO ONE CAN KNOW) 
+   * 1 - when A is pressed, log the current ID, SKEW, X and Z, if ID = 0, END
+   * 2 - Set Acentric to the current Apriltag scew and drive the X vector only till x = 0
+   * 3 - Turn the robot to the saved skew + Cur Position
+   * 4 - Recapture Apriltag to update desired X and Z if ID is correct while driving the desired X and Z distance in Acentric to updated scew. 
+   * 5 - Once found, stop. (Maybe do something else);
+   * 
+   * AutoChecker -> WHen A is pressed, if ID is good for alliance, set Autohandler to current ID 
+   * AutoHandler -> Always running, if variable is not set to 0, call handler for specific ID
+   * SpecificHandler -> Keep track of autostep, when currentID is reset, so should the step, run the code based on the step.
+  */
 
   double x;
   double y;
@@ -50,6 +61,7 @@ public class Robot extends TimedRobot {
     limey = new Limelight();
     driveController = new Myah();
     drivebase.resetNavx();
+    drivebase.setToGlideMode();
   }
 
   @Override
@@ -336,7 +348,9 @@ public class Robot extends TimedRobot {
   
 
   @Override
-  public void disabledInit() {}
+  public void disabledInit() {
+    drivebase.setToCoastMode();
+  }
 
   @Override
   public void disabledPeriodic() {}

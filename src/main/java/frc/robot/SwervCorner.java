@@ -126,4 +126,19 @@ public class SwervCorner {
         driveMotor.set(power * curDirection);
     }
 
+    public void setToBrakeMode(){
+        driveMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
+        turnMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
+    }
+
+    public void setToGlideMode(){
+        driveMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
+        turnMotor.setIdleMode(CANSparkMax.IdleMode.kCoast);
+    }
+
+    public void setToCoastMode(){
+        driveMotor.setIdleMode(CANSparkMax.IdleMode.kCoast);
+        turnMotor.setIdleMode(CANSparkMax.IdleMode.kCoast);
+    }
+
 }

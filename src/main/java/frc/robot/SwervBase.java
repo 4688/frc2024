@@ -1,6 +1,8 @@
 package frc.robot;
 
 import com.kauailabs.navx.frc.AHRS;
+import com.revrobotics.CANSparkMax;
+
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
@@ -64,6 +66,11 @@ public class SwervBase {
 
     public void xToggle() {
         xMode = !xMode;
+        if(xMode){
+            this.setToBrakeMode();
+        }else{
+            this.setToGlideMode();
+        }
     }
 
     /**
@@ -103,13 +110,19 @@ public class SwervBase {
         // Log the orientation for debugging purposes
         SmartDashboard.putNumber("NavX", robotOrientation);
 
+        aCentric(x, y, z, robotOrientation);
+
+    }
+
+    public void aCentric(double x, double y, double z, double a) {
+
         // Convert the target direction (given by x, y) into polar coordinates
         // (magnitude and angle)
         double mag = calculateMagnitude(x, y); // More efficient than sqrt(pow(x, 2) + pow(y, 2))
         double targetAngle = Math.toDegrees(Math.atan2(y, x));
 
         // Adjust the target angle based on the robot's current orientation
-        targetAngle += robotOrientation;
+        targetAngle += a;
         double adjustedAngleRad = Math.toRadians(targetAngle);
 
         // Convert the adjusted polar coordinates back to Cartesian coordinates
@@ -209,6 +222,27 @@ public class SwervBase {
 
     private double calculateMagnitude(double x, double y) {
         return Math.sqrt(x * x + y * y);
+    }
+
+    public void setToBrakeMode(){
+        CornerFL.setToBrakeMode();
+        CornerFR.setToBrakeMode();
+        CornerBL.setToBrakeMode();
+        CornerBR.setToBrakeMode();
+    }
+
+    public void setToGlideMode(){
+        CornerFL.setToGlideMode();
+        CornerFR.setToGlideMode();
+        CornerBL.setToGlideMode();
+        CornerBR.setToGlideMode();
+    }
+
+    public void setToCoastMode(){
+        CornerFL.setToCoastMode();
+        CornerFR.setToCoastMode();
+        CornerBL.setToCoastMode();
+        CornerBR.setToCoastMode();
     }
 
 }
