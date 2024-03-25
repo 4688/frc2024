@@ -105,6 +105,10 @@ public class Myah {
         return xBox.getRawButtonPressed(2);
     }
 
+    public boolean getAButton(){
+        return xBox.getRawButtonPressed(1);
+    }
+
     public boolean getClimbButton(){
         return xBox.getRawButton(6);
     }

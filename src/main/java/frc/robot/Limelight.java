@@ -1,5 +1,8 @@
 package frc.robot;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -15,6 +18,8 @@ public class Limelight {
     private NetworkTableEntry tg;
     private double[] cpose;
     private boolean isRed;
+    private  ArrayList<Integer> redNums = new ArrayList<>(Arrays.asList(3,4,9,10,5));
+    private  ArrayList<Integer> blueNums = new ArrayList<>(Arrays.asList(7,8,1,2,6));
 
     public void updateLimelight(){
         table = NetworkTableInstance.getDefault().getTable("limelight");
@@ -44,7 +49,14 @@ public class Limelight {
     }
 
     public boolean canSee(){
-        return (closestID != 0);
+        if(closestID == 0){
+            return false;
+        }
+        if(isRed){
+            return redNums.contains(closestID);
+        }else{
+            return blueNums.contains(closestID);
+        }
     }
 
     public boolean areWeRed() {

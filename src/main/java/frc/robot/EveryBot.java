@@ -130,7 +130,7 @@ public class EveryBot {
             flywheelMotor.set(1);
         } else if (shooterStep == 1) {
             double rpm = flywheelEncoder.getVelocity();
-
+6
             if (rpm >= SHOOT_RPM || timer.get() > SHOOT_OVERRIDE_TIME) {
                 intakeMotor.set(1);
                 timer.reset();

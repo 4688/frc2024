@@ -4,14 +4,7 @@
 
 package frc.robot;
 
-import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.NeutralMode;
-import com.ctre.phoenix.motorcontrol.can.VictorSPX;
-
-import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Robot extends TimedRobot {
@@ -21,16 +14,10 @@ public class Robot extends TimedRobot {
   Limelight limey;
   Myah driveController;
   
-  private int lastPOV = -1;
-  private int turnToAng = -1;
   private boolean isAuto = false;
-  public double[] aprilTags;
-  public boolean isShooting = false;
-  public boolean isIntaking = false;
-  public boolean isRed = true;
-  double saveZ = 0;
-  double saveX = 0;
-  double contID = 0;
+  private int curAuto = 0;
+  private int curAutoStep = 0;
+
 
   /*DA AUTO MASTER PLAN (TOP SECRET NO ONE CAN KNOW) 
    * 1 - when A is pressed, log the current ID, SKEW, X and Z, if ID = 0, END
@@ -46,6 +33,8 @@ public class Robot extends TimedRobot {
 
   double x;
   double y;
+  double autoX;
+  double autoZ;
   double z;
   double m;
 
@@ -62,6 +51,7 @@ public class Robot extends TimedRobot {
     driveController = new Myah();
     drivebase.resetNavx();
     drivebase.setToGlideMode();
+    limey.checkField();
   }
 
   @Override
@@ -70,6 +60,7 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousInit() {
     drivebase.resetNavx();
+    limey.checkField();
   }
 
   @Override
@@ -77,275 +68,27 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopInit() {
-    
-    
+    limey.checkField();
   }
 
   
 
   @Override
   public void teleopPeriodic() {
-   
-    x = driveController.getX();
-    y = driveController.getY();
-    z = driveController.getZ(drivebase.getNavX());
-
-
-    if (xBox.getRawButtonPressed(1)){
+   if (driveController.getAButton()){
       isAuto = !isAuto;
-    }
+  }
 
     if(isAuto){
-      if(isRed){
-        if(contID == 4){
-          if(!johnathan.shoot()){
-            isAuto = false;
-            drivebase.setTurnOffset(0);
-            contID = 0;
-          }
-        }
-        else if(closestId == 4){
-          double dist = Math.sqrt(Math.pow(txValue, 2) + Math.pow(tzValue, 2));
-          double angle = Math.toDegrees(Math.atan2(tzValue, txValue)) - 180;
-          if (angle < 0) angle += 360;
-          if (txValue > 1) txValue = 1;
-          if (txValue < -1) txValue = -1;
-          if (tzValue > 1) tzValue = 1;
-          if (tzValue < -1) tzValue = -1;
-          drivebase.setTurnOffset(180);
-          turnToAng = (int) angle;
-          if (dist > 2.25){
-            x = -txValue;
-            y = -tzValue;
-          }else if(dist < 1.2){
-            x = txValue;
-            y = tzValue;
-          }else{
-            turnToAng = (int) (angle + 26.5) % 360;
-            contID = 4;
-          }
-        }
-
-        else if(closestId == 3){
-          double angle = Math.toDegrees(Math.atan2(tzValue, txValue - 0.616)) - 180;
-          if (angle < 0) angle += 360;
-          turnToAng = (int) angle % 360;
-        }
-
-        if(closestId == 9 || closestId == 10){
-          if (johnathan.getActiveShooter()){
-            txValue = txValue - 0.1;
-          }else{
-            txValue = txValue + 0.1;
-          }
-          
-          if ((Math.abs(txValue) < 0.02 && Math.abs(tzValue) < 0.02) || tzValue > 200){
-            contID = 9;
-            drivebase.resetDistance();
-          }else{
-            turnToAng = 300;
-            drivebase.setTurnOffset(300);
-            if (txValue > 1) txValue = 1;
-            if (txValue < -1) txValue = -1;
-            if (tzValue > 1) tzValue = 1;
-            if (tzValue < -1) tzValue = -1;
-            x = -txValue;
-            y = -tzValue;
-            saveZ = txValue;
-            saveX = tzValue;
-          }
-        }
-        else if(contID == 9){
-          double distToTarget = Math.sqrt(Math.pow(saveX, 2) + Math.pow(saveZ, 2)) - drivebase.getDistance();
-          if(distToTarget < 0.01 && distToTarget > -0.01){
-            contID = 0;
-            drivebase.resetDistance();
-          }else{
-            double regy = saveZ /(Math.abs(saveX) + Math.abs(saveZ));
-            double regx = saveX / (Math.abs(saveX) + Math.abs(saveZ));
-            y = -regy * distToTarget;
-            x = -regx * distToTarget;
-          }
-        }else if(closestId == 5){
-          txValue = txValue + 0.1;
-          if ((Math.abs(txValue) < 0.02 && Math.abs(tzValue) < 0.02) || tzValue > 200){
-            contID = 5;
-            drivebase.resetDistance();
-          }else{
-            turnToAng = 90;
-            drivebase.setTurnOffset(90);
-            if (txValue > 1) txValue = 1;
-            if (txValue < -1) txValue = -1;
-            if (tzValue > 1) tzValue = 1;
-            if (tzValue < -1) tzValue = -1;
-            x = -txValue;
-            y = -tzValue;
-            saveZ = txValue;
-            saveX = tzValue;
-          }
-        }
-        else if(contID == 5){
-          double distToTarget = Math.sqrt(Math.pow(saveX, 2) + Math.pow(saveZ, 2)) - drivebase.getDistance();
-          if(distToTarget < 0.01 && distToTarget > -0.01){
-            contID = 0;
-            drivebase.resetDistance();
-          }else{
-            double regy = saveZ /(Math.abs(saveX) + Math.abs(saveZ));
-            double regx = saveX / (Math.abs(saveX) + Math.abs(saveZ));
-            y = -regy * distToTarget;
-            x = -regx * distToTarget;
-          }
-        }else{
-          isAuto = false;
-          drivebase.setTurnOffset(0);
-        }
-      }else{
-        if(contID == 7){
-          if(!johnathan.shoot()){
-            isAuto = false;
-            drivebase.setTurnOffset(0);
-            contID = 0;
-          }
-        }
-        else if(closestId == 7){
-          double dist = Math.sqrt(Math.pow(txValue, 2) + Math.pow(tzValue, 2));
-          double angle = Math.toDegrees(Math.atan2(tzValue, txValue)) - 180;
-          if (angle < 0) angle += 360;
-          if (txValue > 1) txValue = 1;
-          if (txValue < -1) txValue = -1;
-          if (tzValue > 1) tzValue = 1;
-          if (tzValue < -1) tzValue = -1;
-          turnToAng = (int) angle;
-          drivebase.setTurnOffset(180);
-          if (dist > 2.25){
-            x = -txValue;
-            y = -tzValue;
-          }else if(dist < 1.2){
-            x = txValue;
-            y = tzValue;
-          }else{
-            turnToAng = (int) (angle + 26.5) % 360;
-            contID = 7;
-          }
-        }
-
-        else if(closestId == 8){
-          double angle = Math.toDegrees(Math.atan2(tzValue, txValue + 0.616)) - 180;
-          if (angle < 0) angle += 360;
-          turnToAng = (int) angle % 360;
-        }
-
-        if(closestId == 1 || closestId == 2){
-          if (johnathan.getActiveShooter()){
-            txValue = txValue - 0.1;
-          }else{
-            txValue = txValue + 0.1;
-          }
-          
-          if ((Math.abs(txValue) < 0.02 && Math.abs(tzValue) < 0.02) || tzValue > 200){
-            contID = 1;
-            drivebase.resetDistance();
-          }else{
-            turnToAng = 60;
-            drivebase.setTurnOffset(60);
-            if (txValue > 1) txValue = 1;
-            if (txValue < -1) txValue = -1;
-            if (tzValue > 1) tzValue = 1;
-            if (tzValue < -1) tzValue = -1;
-            x = -txValue;
-            y = -tzValue;
-            saveZ = txValue;
-            saveX = tzValue;
-          }
-        }
-        else if(contID == 1){
-          double distToTarget = Math.sqrt(Math.pow(saveX, 2) + Math.pow(saveZ, 2)) - drivebase.getDistance();
-          if(distToTarget < 0.01 && distToTarget > -0.01){
-            contID = 0;
-            drivebase.resetDistance();
-          }else{
-            double regy = saveZ /(Math.abs(saveX) + Math.abs(saveZ));
-            double regx = saveX / (Math.abs(saveX) + Math.abs(saveZ));
-            y = -regy * distToTarget;
-            x = -regx * distToTarget;
-          }
-        }else if(closestId == 6){
-          txValue = txValue + 0.1;
-          if ((Math.abs(txValue) < 0.02 && Math.abs(tzValue) < 0.02) || tzValue > 200){
-            contID = 6;
-            drivebase.resetDistance();
-          }else{
-            turnToAng = 270;
-            drivebase.setTurnOffset(270);
-            if (txValue > 1) txValue = 1;
-            if (txValue < -1) txValue = -1;
-            if (tzValue > 1) tzValue = 1;
-            if (tzValue < -1) tzValue = -1;
-            x = -txValue;
-            y = -tzValue;
-            saveZ = txValue;
-            saveX = tzValue;
-          }
-        }
-        else if(contID == 6){
-          double distToTarget = Math.sqrt(Math.pow(saveX, 2) + Math.pow(saveZ, 2)) - drivebase.getDistance();
-          if(distToTarget < 0.01 && distToTarget > -0.01){
-            contID = 0;
-            drivebase.resetDistance();
-          }else{
-            double regy = saveZ /(Math.abs(saveX) + Math.abs(saveZ));
-            double regx = saveX / (Math.abs(saveX) + Math.abs(saveZ));
-            y = -regy * distToTarget;
-            x = -regx * distToTarget;
-          }
-        }else{
-          isAuto = false;
-          drivebase.setTurnOffset(0);
-        }
-      }
+      ampAuto(0);
+    }else{
+      teleopDrive();
     }
-        
-
-
-
-
-
-
-
-
-
-
-
-    if (driveController.getStartButton()){
-      drivebase.resetNavx();
-    }
-
-    if (driveController.getSelectButton()){
-      drivebase.xToggle();
-    }
-
-    kitBot.handleNoteIn(driveController.getYButton());
-    kitBot.handleNoteOut(driveController.getXButton());
-    
-
-    if (driveController.getBButton){
-      kitBot.switchMode();
-    }
-
-    kitBot.handleClimb(driveController.getClimbButton(), driveController.getRaiseButton(), driveController.getSafteyButton());
-
 
     kitBot.displayDiagnostics();
     drivebase.getEncoders();
-
-
-    m =  driveController.getBrake();
-    drivebase.fieldCentric(y * m, x * m, z * m);
     
-
   }
-
-  
 
   @Override
   public void disabledInit() {
@@ -366,4 +109,118 @@ public class Robot extends TimedRobot {
 
   @Override
   public void simulationPeriodic() {}
+
+  public void teleopDrive(){
+    x = driveController.getX();
+    y = driveController.getY();
+    z = driveController.getZ(drivebase.getNavX());
+
+    if (driveController.getStartButton()){
+      drivebase.resetNavx();
+    }
+
+    if (driveController.getSelectButton()){
+      drivebase.xToggle();
+    }
+
+    kitBot.handleNoteIn(driveController.getYButton());
+    kitBot.handleNoteOut(driveController.getXButton());
+    
+    if (driveController.getBButton()){
+      kitBot.switchMode();
+    }
+
+    kitBot.handleClimb(driveController.getClimbButton(), driveController.getRaiseButton(), driveController.getSafteyButton());
+
+    m =  driveController.getBrake();
+    drivebase.fieldCentric(x * m, y * m, z * m);
+  }
+
+
+  public void startAuto(boolean Autobutton){
+    limey.updateLimelight();
+    if(limey.canSee()){
+      SmartDashboard.putString("AUTO LOG", "STARTING AUTO FOR ID: " + limey.getID());
+      curAuto = limey.getID();
+      isAuto = true;
+    }
+  }
+
+  public void handleAuto(){
+    if(isAuto){
+      
+    }
+  }
+
+  public void ampAuto(int turnAng){
+    if (curAutoStep == 0){
+      if (limey.canSee()){
+        autoX = limey.getLimelightX();
+        autoZ = limey.getLimelightZ();
+        curAutoStep = 1;
+        drivebase.resetDistance();
+      }else{
+        isAuto = false;
+      }
+    }else if(curAutoStep == 1){
+      if(LineDriveTo(autoX, (360 + turnAng - drivebase.getNavX()) % 360)){
+        curAutoStep = 2;
+        driveController.turnTo(turnAng);
+      }
+    }else if(curAutoStep == 2){
+      double turnZ = driveController.getAutoZ(drivebase.getNavX());
+      drivebase.robotCentric(0, 0, turnZ);
+      if(turnZ > -0.01 && turnZ < 0.01){
+        curAutoStep = 3;
+        drivebase.resetDistance();
+      }
+    }else if(curAutoStep == 3){
+      limey.updateLimelight();
+      if(limey.getID() == 4 || limey.getID() == 7){
+        autoX = limey.getLimelightX();
+        autoZ = limey.getLimelightZ();
+      }
+      if(limelightDriveTo(autoX, autoZ)){
+        curAutoStep = 0;
+        curAuto = 0;
+        isAuto = false;
+      }
+    }
+  }
+
+  public boolean limelightDriveTo(double x, double z){
+    double startDist = drivebase.calculateMagnitude(x, y);
+    if (startDist < 0.05){
+      drivebase.robotCentric(0, 0, 0);
+      return true;
+    }
+    double distance = startDist - drivebase.getDistance();
+    if(Math.abs(distance) < 0.05){
+      drivebase.robotCentric(0, 0, 0);
+      return true;
+    }
+    drivebase.robotCentric((x/startDist)*distance, (z/startDist)*distance, 0);
+    return false;
+  }
+
+  public boolean LineDriveTo(double x, double a){
+    double startDist = x;
+    if (startDist < 0.05){
+      return true;
+    }
+    double distance = startDist - drivebase.getDistance();
+    if(Math.abs(distance) < 0.05){
+      drivebase.robotCentric(0, 0, 0);
+      return true;
+    }
+    drivebase.aCentric((x/startDist)*distance, 0, 0, a);
+    return false;
+  }
+
+
+
+
+
+
+  
 }

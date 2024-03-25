@@ -1,7 +1,6 @@
 package frc.robot;
 
 import com.kauailabs.navx.frc.AHRS;
-import com.revrobotics.CANSparkMax;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -220,7 +219,7 @@ public class SwervBase {
         }
     }
 
-    private double calculateMagnitude(double x, double y) {
+    public double calculateMagnitude(double x, double y) {
         return Math.sqrt(x * x + y * y);
     }
 
