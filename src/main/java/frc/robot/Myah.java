@@ -18,7 +18,7 @@ public class Myah {
     }
 
     public double getY() {
-        return deadband(-xBox.getRawAxis(1));
+        return deadband(xBox.getRawAxis(1));
     }
 
     public double getZ() {

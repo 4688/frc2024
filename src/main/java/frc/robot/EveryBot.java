@@ -130,7 +130,6 @@ public class EveryBot {
             flywheelMotor.set(1);
         } else if (shooterStep == 1) {
             double rpm = flywheelEncoder.getVelocity();
-6
             if (rpm >= SHOOT_RPM || timer.get() > SHOOT_OVERRIDE_TIME) {
                 intakeMotor.set(1);
                 timer.reset();
@@ -178,6 +177,9 @@ public class EveryBot {
         if (usingShooter) {
             if (isPressed || shooterStep > 0) {
                 shoot();
+            }else{
+                flywheelMotor.set(0);
+                intakeMotor.set(0);
             }
         } else {
             clawDrop(isPressed);

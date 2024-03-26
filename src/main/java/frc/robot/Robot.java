@@ -61,6 +61,7 @@ public class Robot extends TimedRobot {
   public void autonomousInit() {
     drivebase.resetNavx();
     limey.checkField();
+    drivebase.setToGlideMode();
   }
 
   @Override
@@ -69,6 +70,7 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopInit() {
     limey.checkField();
+    drivebase.setToGlideMode();
   }
 
   
@@ -87,6 +89,7 @@ public class Robot extends TimedRobot {
 
     kitBot.displayDiagnostics();
     drivebase.getEncoders();
+    kitBot.handleLights();
     
   }
 
@@ -123,8 +126,11 @@ public class Robot extends TimedRobot {
       drivebase.xToggle();
     }
 
-    kitBot.handleNoteIn(driveController.getYButton());
-    kitBot.handleNoteOut(driveController.getXButton());
+    if(driveController.getYButton()){
+      kitBot.handleNoteIn(driveController.getYButton());
+    }else{
+      kitBot.handleNoteOut(driveController.getXButton());
+    }
     
     if (driveController.getBButton()){
       kitBot.switchMode();

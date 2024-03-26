@@ -11,10 +11,10 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public class SwervBase {
 
     // Constants for initial rotation offsets for each SwervCorner
-    private static final double ROTATE_OFFSET_FR = 0.067139;
-    private static final double ROTATE_OFFSET_FL = 0.442383;
-    private static final double ROTATE_OFFSET_BR = 0.370850;
-    private static final double ROTATE_OFFSET_BL = 0.041748;
+    private static final double ROTATE_OFFSET_FR = 0.0664;
+    private static final double ROTATE_OFFSET_FL = 0.4414;
+    private static final double ROTATE_OFFSET_BR = 0.361;
+    private static final double ROTATE_OFFSET_BL = 0.042;
 
     // Swerve Corners
     private final SwervCorner CornerFR;
@@ -139,12 +139,12 @@ public class SwervBase {
         // Normalize magnitudes and calculate angles directly within the method
         double frx = x + z;
         double fry = y + z;
-        double flx = x - z;
-        double fly = y + z;
+        double flx = x + z;
+        double fly = y - z;
         double blx = x - z;
         double bly = y - z;
-        double brx = x + z;
-        double bry = y - z;
+        double brx = x - z;
+        double bry = y + z;
 
         double frmag = calculateMagnitude(frx, fry);
         double flmag = calculateMagnitude(flx, fly);
