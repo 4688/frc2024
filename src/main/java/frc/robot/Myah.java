@@ -13,6 +13,10 @@ public class Myah {
         xBox = new Joystick(USB_PORT);
     }
 
+    public boolean getTurning(){
+        return (autoTurn == -1);
+    }
+
     public double getX() {
         return deadband(xBox.getRawAxis(0));
     }

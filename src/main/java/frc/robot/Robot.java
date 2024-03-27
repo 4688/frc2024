@@ -79,10 +79,13 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
    if (driveController.getAButton()){
       isAuto = !isAuto;
+      drivebase.resetDistance();
   }
 
     if(isAuto){
-      ampAuto(0);
+      if(LineDriveTo(-1,90)){
+        isAuto = false;
+      }
     }else{
       teleopDrive();
     }
@@ -144,6 +147,8 @@ public class Robot extends TimedRobot {
   }
 
 
+
+
   public void startAuto(boolean Autobutton){
     limey.updateLimelight();
     if(limey.canSee()){
@@ -156,6 +161,18 @@ public class Robot extends TimedRobot {
   public void handleAuto(){
     if(isAuto){
       
+    }
+  }
+
+  public boolean autoTurn(int a){
+    driveController.turnTo(a);
+    double turnZ = driveController.getAutoZ(drivebase.getNavX());
+    drivebase.robotCentric(0, 0, turnZ);
+    if(driveController.getTurning()){
+      drivebase.robotCentric(0, 0, 0);
+      return true;
+    }else{
+      return false;
     }
   }
 
@@ -197,7 +214,7 @@ public class Robot extends TimedRobot {
   }
 
   public boolean limelightDriveTo(double x, double z){
-    double startDist = drivebase.calculateMagnitude(x, y);
+    double startDist = drivebase.calculateMagnitude(x, z);
     if (startDist < 0.05){
       drivebase.robotCentric(0, 0, 0);
       return true;
