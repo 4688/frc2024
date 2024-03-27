@@ -70,7 +70,7 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopInit() {
     limey.checkField();
-    drivebase.setToGlideMode();
+    drivebase.setToBrakeMode();
   }
 
   
@@ -90,6 +90,7 @@ public class Robot extends TimedRobot {
     kitBot.displayDiagnostics();
     drivebase.getEncoders();
     kitBot.handleLights();
+    limey.updateLimelight();
     
   }
 
@@ -159,6 +160,7 @@ public class Robot extends TimedRobot {
   }
 
   public void ampAuto(int turnAng){
+    SmartDashboard.putNumber("Auto Step", curAutoStep);
     if (curAutoStep == 0){
       if (limey.canSee()){
         autoX = limey.getLimelightX();
@@ -182,7 +184,7 @@ public class Robot extends TimedRobot {
       }
     }else if(curAutoStep == 3){
       limey.updateLimelight();
-      if(limey.getID() == 4 || limey.getID() == 7){
+      if(limey.getID() == 6 || limey.getID() == 7){
         autoX = limey.getLimelightX();
         autoZ = limey.getLimelightZ();
       }
@@ -211,7 +213,7 @@ public class Robot extends TimedRobot {
 
   public boolean LineDriveTo(double x, double a){
     double startDist = x;
-    if (startDist < 0.05){
+    if (Math.abs(startDist) < 0.05){
       return true;
     }
     double distance = startDist - drivebase.getDistance();

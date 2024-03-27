@@ -63,7 +63,7 @@ public class SwervCorner {
 
         // Setting Corner Specific Settings
         this.rotateOffset = rotateOffset;
-        this.curDirection = 1; // Initial direction set to forward
+        this.curDirection = -1; // Initial direction set to forward
         last_drive_position = 0; // Initial RPM position reset
     }
 

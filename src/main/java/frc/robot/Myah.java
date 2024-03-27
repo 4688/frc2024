@@ -4,7 +4,7 @@ import edu.wpi.first.wpilibj.Joystick;
 
 public class Myah {
     private static final int USB_PORT = 0;
-    private static final double DEADBAND = 0.07;
+    private static final double DEADBAND = 0.15;
 
     private Joystick xBox;
     private int autoTurn = -1;
@@ -18,7 +18,7 @@ public class Myah {
     }
 
     public double getY() {
-        return deadband(xBox.getRawAxis(1));
+        return -deadband(xBox.getRawAxis(1));
     }
 
     public double getZ() {

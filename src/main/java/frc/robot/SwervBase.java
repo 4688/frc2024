@@ -109,6 +109,10 @@ public class SwervBase {
         // Log the orientation for debugging purposes
         SmartDashboard.putNumber("NavX", robotOrientation);
 
+        SmartDashboard.putNumber("Drive X", x);
+        SmartDashboard.putNumber("Drive Y", y);
+        SmartDashboard.putNumber("Drive Z", z);
+
         aCentric(x, y, z, robotOrientation);
 
     }
@@ -128,23 +132,21 @@ public class SwervBase {
         x = mag * Math.cos(adjustedAngleRad);
         y = mag * Math.sin(adjustedAngleRad);
 
-        x = Math.round(x * 100.0) / 100.0;
-        y = Math.round(y * 100.0) / 100.0;
-
         robotCentric(x, y, z);
 
     }
 
     public void robotCentric(double x, double y, double z) {
+        x = -x;
         // Normalize magnitudes and calculate angles directly within the method
-        double frx = x + z;
-        double fry = y + z;
-        double flx = x + z;
-        double fly = y - z;
-        double blx = x - z;
-        double bly = y - z;
-        double brx = x - z;
-        double bry = y + z;
+        double frx = x - z;
+        double fry = y - z;
+        double flx = x - z;
+        double fly = y + z;
+        double blx = x + z;
+        double bly = y + z;
+        double brx = x + z;
+        double bry = y - z;
 
         double frmag = calculateMagnitude(frx, fry);
         double flmag = calculateMagnitude(flx, fly);
@@ -194,6 +196,10 @@ public class SwervBase {
                 brmag /= bigMag;
             }
         }
+
+        SmartDashboard.putNumber("Drive TURN2", angleFL);
+        SmartDashboard.putNumber("Drive MAG2", flmag);
+        SmartDashboard.putNumber("Drive Z2", z);
 
         if (x == 0 && y == 0 && z == 0 && xMode) {
             CornerFL.liveDrive(45, flmag);
