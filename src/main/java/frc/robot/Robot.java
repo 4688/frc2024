@@ -62,6 +62,7 @@ public class Robot extends TimedRobot {
     drivebase.resetNavx();
     limey.checkField();
     drivebase.setToGlideMode();
+    drivebase.resetDistance();
   }
 
   @Override
@@ -69,14 +70,17 @@ public class Robot extends TimedRobot {
     if(curAutoStep == 0){
       if(NavXDriveTo(0, 1.1)){
         curAutoStep = 1;
+        drivebase.resetDistance();
       }
     }else if(curAutoStep == 1){
       if(autoTurn(180)){
         curAutoStep = 2;
+        drivebase.resetDistance();
       }
     }else if(curAutoStep == 2){
       if(NavXDriveTo(0, -0.9)){
         curAutoStep = 3;
+        drivebase.resetDistance();
       }
     }else if(curAutoStep == 3){
       if(!kitBot.shoot()){
