@@ -12,8 +12,8 @@ import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class EveryBot {
-    private static final int SHOOT_RPM = 5900;
-    private static final double SHOOT_OVERRIDE_TIME = 2;
+    private static final int SHOOT_RPM = 6100;
+    private static final double SHOOT_OVERRIDE_TIME = 2.5;
     private static final double CLAW_DROP_TIME = 0.5;
 
     private static final int TOP_CLAW_SENSOR_PORT = 0;
@@ -60,12 +60,14 @@ public class EveryBot {
         timer = new Timer();
     }
 
-    public void handleLights() {
+    public void handleLights(boolean canSeeLights) {
         if (!climbStopSwitch.get()) {
             lights.set(-0.99); // IF WE ARE CLIMBED
         } else if (isClimbing) {
             lights.set(0.53); // IF WE ARE CLIMBING
-        } else if (usingShooter) {
+        } else if (canSeeLights){
+            lights.set(-0.83);
+        }else if (usingShooter) {
             if (intakeSensor.getVoltage() > 4) {
                 lights.set(0.19); // IF WE HAVE A PEICE IN SHOOTER
             } else {

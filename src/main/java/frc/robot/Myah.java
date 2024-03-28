@@ -35,7 +35,7 @@ public class Myah {
     }
 
     public double getZ(double curPos) {
-        double z = deadband(xBox.getRawAxis(4));
+        double z = deadband(xBox.getRawAxis(4))* 0.8;
         if (z != 0) {
             autoTurn = -1;
             return z;
@@ -123,6 +123,10 @@ public class Myah {
 
     public boolean getSafteyButton(){
         return xBox.getRawButton(8);
+    }
+
+    public boolean getRobotCentric(){
+        return (xBox.getRawAxis(2) > 0.4);
     }
 
     public double getBrake(){

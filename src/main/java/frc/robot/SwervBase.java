@@ -13,7 +13,7 @@ public class SwervBase {
     // Constants for initial rotation offsets for each SwervCorner
     private static final double ROTATE_OFFSET_FR = 0.0664;
     private static final double ROTATE_OFFSET_FL = 0.4414;
-    private static final double ROTATE_OFFSET_BR = 0.361;
+    private static final double ROTATE_OFFSET_BR = 0.226;
     private static final double ROTATE_OFFSET_BL = 0.042;
 
     // Swerve Corners

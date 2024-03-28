@@ -65,12 +65,31 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void autonomousPeriodic() {}
+  public void autonomousPeriodic() {
+    if(curAutoStep == 0){
+      if(NavXDriveTo(0, 1.1)){
+        curAutoStep = 1;
+      }
+    }else if(curAutoStep == 1){
+      if(autoTurn(180)){
+        curAutoStep = 2;
+      }
+    }else if(curAutoStep == 2){
+      if(NavXDriveTo(0, -0.9)){
+        curAutoStep = 3;
+      }
+    }else if(curAutoStep == 3){
+      if(!kitBot.shoot()){
+        curAutoStep = 4;
+      }
+    }
+  }
 
   @Override
   public void teleopInit() {
     limey.checkField();
     drivebase.setToBrakeMode();
+    curAutoStep = 0;
   }
 
   
@@ -83,17 +102,28 @@ public class Robot extends TimedRobot {
   }
 
     if(isAuto){
-      if(LineDriveTo(-1,90)){
-        isAuto = false;
+      limey.updateLimelight();
+      if(limey.canSee()){
+        if(limey.getID() == 9 || limey.getID() == 10){
+          driveController.turnTo(300);
+        }else if(limey.getID() == 1 || limey.getID() == 2){
+          driveController.turnTo(60);
+        }else if(limey.getID() == 5){
+          driveController.turnTo(90);
+        }else if(limey.getID() == 6){
+          driveController.turnTo(270);
+        }
       }
+      isAuto = false;
     }else{
       teleopDrive();
+      curAutoStep = 0;
     }
 
     kitBot.displayDiagnostics();
     drivebase.getEncoders();
-    kitBot.handleLights();
     limey.updateLimelight();
+    kitBot.handleLights(limey.canSee());
     
   }
 
@@ -143,26 +173,51 @@ public class Robot extends TimedRobot {
     kitBot.handleClimb(driveController.getClimbButton(), driveController.getRaiseButton(), driveController.getSafteyButton());
 
     m =  driveController.getBrake();
-    drivebase.fieldCentric(x * m, y * m, z * m);
-  }
-
-
-
-
-  public void startAuto(boolean Autobutton){
-    limey.updateLimelight();
-    if(limey.canSee()){
-      SmartDashboard.putString("AUTO LOG", "STARTING AUTO FOR ID: " + limey.getID());
-      curAuto = limey.getID();
-      isAuto = true;
+    if(driveController.getRobotCentric()){
+      drivebase.robotCentric(x * m, y * m, z * m);
+    }else{
+      drivebase.fieldCentric(x * m, y * m, z * m);
     }
   }
 
-  public void handleAuto(){
-    if(isAuto){
-      
+
+
+
+
+
+
+
+
+
+  public boolean LimelightDriveTo(double localx, double localz){
+    double startDist = drivebase.calculateMagnitude(localx, localz);
+    if (startDist < 0.05){
+      drivebase.robotCentric(0, 0, 0);
+      return true;
     }
+    double distance = startDist - drivebase.getDistance();
+    if(Math.abs(distance) < 0.05){
+      drivebase.robotCentric(0, 0, 0);
+      return true;
+    }
+    drivebase.robotCentric(-(localx/startDist)*distance, (localz/startDist)*distance, 0);
+    return false;
   }
+
+  public boolean NavXDriveTo(double localx, double localz){
+    double startDist = drivebase.calculateMagnitude(localx, localz);
+    if (startDist < 0.05){
+      drivebase.robotCentric(0, 0, 0);
+      return true;
+    }
+    double distance = startDist - drivebase.getDistance();
+    if(Math.abs(distance) < 0.05){
+      drivebase.robotCentric(0, 0, 0);
+      return true;
+    }
+    drivebase.fieldCentric((localx/startDist)*distance, (localz/startDist)*distance, 0);
+    return false;
+  }  
 
   public boolean autoTurn(int a){
     driveController.turnTo(a);
@@ -175,77 +230,4 @@ public class Robot extends TimedRobot {
       return false;
     }
   }
-
-  public void ampAuto(int turnAng){
-    SmartDashboard.putNumber("Auto Step", curAutoStep);
-    if (curAutoStep == 0){
-      if (limey.canSee()){
-        autoX = limey.getLimelightX();
-        autoZ = limey.getLimelightZ();
-        curAutoStep = 1;
-        drivebase.resetDistance();
-      }else{
-        isAuto = false;
-      }
-    }else if(curAutoStep == 1){
-      if(LineDriveTo(autoX, (360 + turnAng - drivebase.getNavX()) % 360)){
-        curAutoStep = 2;
-        driveController.turnTo(turnAng);
-      }
-    }else if(curAutoStep == 2){
-      double turnZ = driveController.getAutoZ(drivebase.getNavX());
-      drivebase.robotCentric(0, 0, turnZ);
-      if(turnZ > -0.01 && turnZ < 0.01){
-        curAutoStep = 3;
-        drivebase.resetDistance();
-      }
-    }else if(curAutoStep == 3){
-      limey.updateLimelight();
-      if(limey.getID() == 6 || limey.getID() == 7){
-        autoX = limey.getLimelightX();
-        autoZ = limey.getLimelightZ();
-      }
-      if(limelightDriveTo(autoX, autoZ)){
-        curAutoStep = 0;
-        curAuto = 0;
-        isAuto = false;
-      }
-    }
-  }
-
-  public boolean limelightDriveTo(double x, double z){
-    double startDist = drivebase.calculateMagnitude(x, z);
-    if (startDist < 0.05){
-      drivebase.robotCentric(0, 0, 0);
-      return true;
-    }
-    double distance = startDist - drivebase.getDistance();
-    if(Math.abs(distance) < 0.05){
-      drivebase.robotCentric(0, 0, 0);
-      return true;
-    }
-    drivebase.robotCentric((x/startDist)*distance, (z/startDist)*distance, 0);
-    return false;
-  }
-
-  public boolean LineDriveTo(double x, double a){
-    double startDist = x;
-    if (Math.abs(startDist) < 0.05){
-      return true;
-    }
-    double distance = startDist - drivebase.getDistance();
-    if(Math.abs(distance) < 0.05){
-      drivebase.robotCentric(0, 0, 0);
-      return true;
-    }
-    drivebase.aCentric((x/startDist)*distance, 0, 0, a);
-    return false;
-  }
-
-
-
-
-
-
-  
 }
