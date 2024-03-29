@@ -58,6 +58,7 @@ public class Robot extends TimedRobot {
 
     autoChooser.setDefaultOption("The Classic Shoot", "turnShoot");
     autoChooser.addOption("MR CLEAN!!!", "cleanUp");
+    autoChooser.addOption("Slide IN", "slidein");
     SmartDashboard.putData("Autonomous Modes", autoChooser);
   }
 
@@ -75,13 +76,16 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousPeriodic() {
     String selectedMode = autoChooser.getSelected();
-    
+     
     switch (selectedMode) {
         case "turnShoot":
             turnAndShoot();
             break;
         case "cleanUp":
             wipeIT();
+            break;
+        case "slidein":
+            slideIn();
             break;
     }
   }
@@ -112,7 +116,7 @@ public class Robot extends TimedRobot {
   public void wipeIT() {
     if (limey.areWeRed()) {
       if (curAutoStep == 0) {
-        if (NavXDriveTo(-1.4, 7.87)) {
+        if (NavXDriveTo(-1, 5)) {
           curAutoStep = 1;
           drivebase.resetDistance();
         }
@@ -122,7 +126,7 @@ public class Robot extends TimedRobot {
           drivebase.resetDistance();
         }
       } else if (curAutoStep == 2) {
-        if (NavXDriveTo(6.75, 0)) {
+        if (NavXDriveTo(6, 0)) {
           curAutoStep = 3;
           drivebase.resetDistance();
         }
@@ -148,6 +152,79 @@ public class Robot extends TimedRobot {
     }
 
   }
+
+
+
+
+
+
+
+  public void slideIn() {
+    if (limey.areWeRed()) {
+      if (curAutoStep == 0) {
+        if (NavXDriveTo(0, 2.1)) {
+          curAutoStep = 1;
+          drivebase.resetDistance();
+        }
+      } else if (curAutoStep == 1) {
+        if (autoTurn(180)) {
+          curAutoStep = 2;
+          drivebase.resetDistance();
+        }
+      } else if (curAutoStep == 2) {
+        if (NavXDriveTo(2.2, -1.03)) {
+          curAutoStep = 3;
+          drivebase.resetDistance();
+        }
+      } else if(curAutoStep == 3){
+        if(!kitBot.shoot()){
+          curAutoStep = 4;
+          drivebase.resetDistance();
+        }
+      }else if (curAutoStep == 4) {
+        if (NavXDriveTo(-3, 3.8)) {
+          curAutoStep = 5;
+          drivebase.resetDistance();
+        }
+      }
+
+    } else {
+      if (curAutoStep == 0) {
+        if (NavXDriveTo(0, 2.1)) {
+          curAutoStep = 1;
+          drivebase.resetDistance();
+        }
+      } else if (curAutoStep == 1) {
+        if (autoTurn(216)) {
+          curAutoStep = 2;
+          drivebase.resetDistance();
+        }
+      } else if (curAutoStep == 2) {
+        if (NavXDriveTo(-2.2, -1.03)) {
+          curAutoStep = 3;
+          drivebase.resetDistance();
+        }
+      } else if(curAutoStep == 3){
+        if(!kitBot.shoot()){
+          curAutoStep = 4;
+          drivebase.resetDistance();
+        }
+      }else if (curAutoStep == 4) {
+        if (NavXDriveTo(3, 3.8)) {
+          curAutoStep = 5;
+          drivebase.resetDistance();
+        }
+      }
+    }
+
+  }
+
+
+
+
+
+
+
 
   @Override
   public void teleopInit() {
