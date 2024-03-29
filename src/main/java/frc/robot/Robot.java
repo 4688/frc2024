@@ -6,6 +6,7 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 
 public class Robot extends TimedRobot {
 
@@ -13,6 +14,8 @@ public class Robot extends TimedRobot {
   EveryBot kitBot;
   Limelight limey;
   Myah driveController;
+
+  private SendableChooser<String> autoChooser = new SendableChooser<>();
   
   private boolean isAuto = false;
   private int curAuto = 0;
@@ -52,6 +55,10 @@ public class Robot extends TimedRobot {
     drivebase.resetNavx();
     drivebase.setToGlideMode();
     limey.checkField();
+
+    autoChooser.setDefaultOption("The Classic Shoot", "turnShoot");
+    autoChooser.addOption("MR CLEAN!!!", "cleanUp");
+    SmartDashboard.putData("Autonomous Modes", autoChooser);
   }
 
   @Override
@@ -67,6 +74,19 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousPeriodic() {
+    String selectedMode = autoChooser.getSelected();
+    
+    switch (selectedMode) {
+        case "turnShoot":
+            turnAndShoot();
+            break;
+        case "cleanUp":
+            wipeIT();
+            break;
+    }
+  }
+
+  public void turnAndShoot(){
     if(curAutoStep == 0){
       if(NavXDriveTo(0, 1.1)){
         curAutoStep = 1;
@@ -87,6 +107,46 @@ public class Robot extends TimedRobot {
         curAutoStep = 4;
       }
     }
+  }
+
+  public void wipeIT() {
+    if (limey.areWeRed()) {
+      if (curAutoStep == 0) {
+        if (NavXDriveTo(-1.4, 7.87)) {
+          curAutoStep = 1;
+          drivebase.resetDistance();
+        }
+      } else if (curAutoStep == 1) {
+        if (autoTurn(135)) {
+          curAutoStep = 2;
+          drivebase.resetDistance();
+        }
+      } else if (curAutoStep == 2) {
+        if (NavXDriveTo(6.75, 0)) {
+          curAutoStep = 3;
+          drivebase.resetDistance();
+        }
+      } 
+
+    } else {
+      if (curAutoStep == 0) {
+        if (NavXDriveTo(1.4, 7.87)) {
+          curAutoStep = 1;
+          drivebase.resetDistance();
+        }
+      } else if (curAutoStep == 1) {
+        if (autoTurn(135)) {
+          curAutoStep = 2;
+          drivebase.resetDistance();
+        }
+      } else if (curAutoStep == 2) {
+        if (NavXDriveTo(-6.75, 0)) {
+          curAutoStep = 3;
+          drivebase.resetDistance();
+        }
+      } 
+    }
+
   }
 
   @Override
