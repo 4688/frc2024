@@ -2,6 +2,7 @@ package frc.robot;
 
 import com.revrobotics.CANSparkMax;
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
@@ -12,6 +13,9 @@ import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class EveryBot {
+
+    private static final int ID_OF_DAVES_SHOOTER = 20;
+
     private static final int SHOOT_RPM = 6100;
     private static final double SHOOT_OVERRIDE_TIME = 2.5;
     private static final double CLAW_DROP_TIME = 0.5;
@@ -28,10 +32,12 @@ public class EveryBot {
     private boolean usingShooter = true;
     private int shooterStep = 0;
     private boolean isClimbing = false;
+    private boolean bypass = false;
 
     private CANSparkMax flywheelMotor;
     private CANSparkMax intakeMotor;
     private CANSparkMax clawMotor;
+    private TalonSRX daveShooter;
     private RelativeEncoder flywheelEncoder;
 
     private AnalogInput clawSensor;
@@ -48,6 +54,8 @@ public class EveryBot {
         flywheelMotor = new CANSparkMax(FLYWHEEL_ID, MotorType.kBrushless);
         intakeMotor = new CANSparkMax(INTAKE_ID, MotorType.kBrushless);
         clawMotor = new CANSparkMax(CLAW_WHEEL_ID, MotorType.kBrushless);
+
+        daveShooter = new TalonSRX(ID_OF_DAVES_SHOOTER);
 
         clawSensor = new AnalogInput(TOP_CLAW_SENSOR_PORT);
         intakeSensor = new AnalogInput(INTAKE_SENSOR_PORT);
@@ -90,21 +98,28 @@ public class EveryBot {
         }
     }
 
+    public void Togglebypass(){
+        bypass = !bypass;
+    }
+
     public boolean shooterIntake(boolean isPressed) {
         if (isPressed) {
             double voltage = intakeSensor.getVoltage();
-            if (voltage > 4) {
+            if (voltage > 4 && !bypass) {
                 intakeMotor.set(0);
                 flywheelMotor.set(0);
+                daveShooter.set(ControlMode.PercentOutput, 0);
                 return false;
             } else {
                 intakeMotor.set(-1);
                 flywheelMotor.set(-1);
+                daveShooter.set(ControlMode.PercentOutput, -1);
                 return true;
             }
         } else {
             intakeMotor.set(0);
             flywheelMotor.set(0);
+            daveShooter.set(ControlMode.PercentOutput, 0);
             return false;
         }
     }
@@ -130,6 +145,7 @@ public class EveryBot {
             timer.start();
             shooterStep = 1;
             flywheelMotor.set(1);
+            daveShooter.set(ControlMode.PercentOutput, 1);
         } else if (shooterStep == 1) {
             double rpm = flywheelEncoder.getVelocity();
             if (rpm >= SHOOT_RPM || timer.get() > SHOOT_OVERRIDE_TIME) {
@@ -140,6 +156,7 @@ public class EveryBot {
         } else if (shooterStep == 2) {
             if (timer.get() > 0.5) {
                 flywheelMotor.set(0);
+                daveShooter.set(ControlMode.PercentOutput, 0);
                 intakeMotor.set(0);
                 shooterStep = 0;
                 timer.reset();
@@ -181,6 +198,7 @@ public class EveryBot {
                 shoot();
             }else{
                 flywheelMotor.set(0);
+                daveShooter.set(ControlMode.PercentOutput, 0);
                 intakeMotor.set(0);
             }
         } else {
@@ -193,6 +211,7 @@ public class EveryBot {
         clawMotor.set(0);
         intakeMotor.set(0);
         flywheelMotor.set(0);
+        daveShooter.set(ControlMode.PercentOutput, 0);
         timer.reset();
         timer.stop();
         shooterStep = 0;
