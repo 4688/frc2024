@@ -65,6 +65,7 @@ public class Robot extends TimedRobot {
     autoChooser.addOption("MR CLEAN!!!", "cleanUp");
     autoChooser.addOption("Slide IN", "slidein");
     autoChooser.addOption("amp", "amp");
+    autoChooser.addOption("fadeAway", "fadeAway");
     SmartDashboard.putData("Autonomous Modes", autoChooser);
   }
 
@@ -88,15 +89,6 @@ public class Robot extends TimedRobot {
         case "turnShoot":
             turnAndShoot();
             break; 
-
-
-
-
-
-
-
-
-
         case "cleanUp":
             wipeIT();
             break;
@@ -106,9 +98,9 @@ public class Robot extends TimedRobot {
         case "amp":
             ampAuto();
             break;
-
-
-            
+        case "fadeAway":
+            fadeAway();
+            break;
     }
   }
 
@@ -124,7 +116,7 @@ public class Robot extends TimedRobot {
         drivebase.resetDistance();
       }
     }else if(curAutoStep == 2){
-      if(NavXDriveTo(0, -0.9)){
+      if(NavXDriveTo(0, -1)){
         curAutoStep = 3;
         drivebase.resetDistance();
       }
@@ -174,6 +166,56 @@ public class Robot extends TimedRobot {
     }
 
   }
+
+
+
+
+
+
+
+
+ public void fadeAway() {
+    if (limey.areWeRed()) {
+      if (curAutoStep == 0) {
+         if(!kitBot.shoot()){
+          curAutoStep = 1;
+          drivebase.resetDistance();
+        }
+
+      } else if (curAutoStep == 1) {
+        if (NavXDriveTo(-0.9, -2.5)) {
+          curAutoStep = 2;
+          drivebase.resetDistance();
+        }
+      } else if (curAutoStep == 2) {
+        if (autoTurn(245)) {
+          curAutoStep = 3;
+          drivebase.resetNavx();
+          drivebase.resetDistance();
+        }
+      } 
+    } else {
+      if (curAutoStep == 0) {
+         if(!kitBot.shoot()){
+          curAutoStep = 1;
+          drivebase.resetDistance();
+        }
+
+      } else if (curAutoStep == 1) {
+        if (NavXDriveTo(0.9, -2.5)) {
+          curAutoStep = 2;
+          drivebase.resetDistance();
+        }
+      } else if (curAutoStep == 2) {
+        if (autoTurn(125)) {
+          curAutoStep = 3;
+          drivebase.resetNavx();
+          drivebase.resetDistance();
+        }
+      }
+    }
+  }
+
 
 
 
@@ -243,10 +285,15 @@ public class Robot extends TimedRobot {
 
 
   public void ampAuto() {
-    if(AutoTimer.get() > 6){
+    if(AutoTimer.get() > 8){
     if (limey.areWeRed()) {
       if (curAutoStep == 0) {
-        if (NavXDriveTo(0, 1.3)) {
+        if (NavXDriveTo(0, 2.5)) {
+          curAutoStep = 48;
+          drivebase.resetDistance();
+        }
+      }else if (curAutoStep == 48) {
+        if (NavXDriveTo(0, -0.8)) {
           curAutoStep = 1;
           drivebase.resetDistance();
         }
@@ -256,19 +303,19 @@ public class Robot extends TimedRobot {
           drivebase.resetDistance();
         }
       } else if (curAutoStep == 2) {
-        if (NavXDriveTo(0.65, 0)) {
+        if (NavXDriveTo(0.8, 0)) {
           curAutoStep = 3;
           drivebase.resetDistance();
         }
       } else if(curAutoStep == 3){
           kitBot.clawDrop(true);
-          if (NavXDriveTo(0.10, 0) || AutoTimer.get() > 14) {
+          if (NavXDriveTo(0.1, 0) || AutoTimer.get() > 14) {
             curAutoStep = 4;
           drivebase.resetDistance();
         }
       }else if(curAutoStep == 4){
-          kitBot.clawDrop(false);
-          if (NavXDriveTo(-0.10, 0)) {
+          kitBot.clawDrop(true);
+          if (NavXDriveTo(-0.1, 0)) {
             curAutoStep = 5;
           drivebase.resetDistance();
         }
@@ -276,7 +323,12 @@ public class Robot extends TimedRobot {
 
     } else {
       if (curAutoStep == 0) {
-        if (NavXDriveTo(0, 1.3)) {
+        if (NavXDriveTo(0, 2.5)) {
+          curAutoStep = 48;
+          drivebase.resetDistance();
+        }
+      }else if (curAutoStep == 48) {
+        if (NavXDriveTo(0, -1.4)) {
           curAutoStep = 1;
           drivebase.resetDistance();
         }
@@ -286,18 +338,18 @@ public class Robot extends TimedRobot {
           drivebase.resetDistance();
         }
       } else if (curAutoStep == 2) {
-        if (NavXDriveTo(-0.65, 0)) {
+        if (NavXDriveTo(-0.8, 0)) {
           curAutoStep = 3;
           drivebase.resetDistance();
         }
       } else if(curAutoStep == 3){
           kitBot.clawDrop(true);
-          if (NavXDriveTo(0.-10, 0) || AutoTimer.get() > 14) {
+          if (NavXDriveTo(-0.1, 0) || AutoTimer.get() > 14.5) {
             curAutoStep = 4;
           drivebase.resetDistance();
         }
       }else if(curAutoStep == 4){
-          kitBot.clawDrop(false);
+          kitBot.clawDrop(true);
           if (NavXDriveTo(0.10, 0)) {
             curAutoStep = 5;
           drivebase.resetDistance();

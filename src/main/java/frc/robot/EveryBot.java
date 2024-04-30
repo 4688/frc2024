@@ -16,8 +16,7 @@ public class EveryBot {
 
     private static final int ID_OF_DAVES_SHOOTER = 20;
 
-    private static final int SHOOT_RPM = 6100;
-    private static final double SHOOT_OVERRIDE_TIME = 2.5;
+    private static final double SHOOT_OVERRIDE_TIME = 0.5;
     private static final double CLAW_DROP_TIME = 0.5;
 
     private static final int TOP_CLAW_SENSOR_PORT = 0;
@@ -37,7 +36,7 @@ public class EveryBot {
     private CANSparkMax flywheelMotor;
     private CANSparkMax intakeMotor;
     private CANSparkMax clawMotor;
-    private TalonSRX daveShooter;
+    private VictorSPX daveShooter;
     private RelativeEncoder flywheelEncoder;
 
     private AnalogInput clawSensor;
@@ -55,7 +54,7 @@ public class EveryBot {
         intakeMotor = new CANSparkMax(INTAKE_ID, MotorType.kBrushless);
         clawMotor = new CANSparkMax(CLAW_WHEEL_ID, MotorType.kBrushless);
 
-        daveShooter = new TalonSRX(ID_OF_DAVES_SHOOTER);
+        daveShooter = new VictorSPX(ID_OF_DAVES_SHOOTER);
 
         clawSensor = new AnalogInput(TOP_CLAW_SENSOR_PORT);
         intakeSensor = new AnalogInput(INTAKE_SENSOR_PORT);
@@ -131,7 +130,7 @@ public class EveryBot {
                 clawMotor.set(0);
                 return false;
             } else {
-                clawMotor.set(1);
+                clawMotor.set(-1);
                 return true;
             }
         } else {
@@ -147,9 +146,10 @@ public class EveryBot {
             flywheelMotor.set(1);
             daveShooter.set(ControlMode.PercentOutput, 1);
         } else if (shooterStep == 1) {
-            double rpm = flywheelEncoder.getVelocity();
-            if (rpm >= SHOOT_RPM || timer.get() > SHOOT_OVERRIDE_TIME) {
+            if ( timer.get() > SHOOT_OVERRIDE_TIME) {
                 intakeMotor.set(1);
+                flywheelMotor.set(1);
+                daveShooter.set(ControlMode.PercentOutput, 1);
                 timer.reset();
                 shooterStep = 2;
             }
@@ -162,6 +162,10 @@ public class EveryBot {
                 timer.reset();
                 timer.stop();
                 return false;
+            }else{
+                flywheelMotor.set(1);
+                daveShooter.set(ControlMode.PercentOutput, 1);
+                intakeMotor.set(1);
             }
         }
         return true;
@@ -169,7 +173,7 @@ public class EveryBot {
 
     public boolean clawDrop(boolean isPressed) {
         if (isPressed) {
-            clawMotor.set(-1);
+            clawMotor.set(1);
             return true;
         } else {
             clawMotor.set(0);
@@ -181,7 +185,7 @@ public class EveryBot {
     public boolean clawSeq() {
         if (shooterStep == 0) {
             timer.start();
-            clawMotor.set(-1);
+            clawMotor.set(1);
         } else if (timer.get() > CLAW_DROP_TIME) {
             clawMotor.set(0);
             timer.reset();
